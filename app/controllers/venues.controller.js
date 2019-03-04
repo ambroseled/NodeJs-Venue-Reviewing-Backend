@@ -1,8 +1,8 @@
-const Venue = require('../models/venues.model');
+const Venues = require('../models/venues.model');
 
 exports.viewAll = async function (req, res) {
     try {
-        // await #TODO Add func here
+        await Venues.getAllVenues();
         res.statusMessage = 'OK';
         res.status(200)
             .send();
@@ -16,7 +16,7 @@ exports.viewAll = async function (req, res) {
 
 exports.addNew = async function (req, res) {
     try {
-        // await #TODO Add func here
+        await Venues.addNewVenue();
         res.statusMessage = 'Created';
         res.status(201)
             .send();
@@ -27,7 +27,7 @@ exports.addNew = async function (req, res) {
 
 exports.getOne = async function (req, res) {
     try {
-        // await #TODO Add func here
+        await Venues.getVenue(req.params.id);
         res.statusMessage = 'OK';
         res.status(200)
             .send();
@@ -38,7 +38,7 @@ exports.getOne = async function (req, res) {
 
 exports.updateDetails = async function (req, res) {
     try {
-        // await #TODO Add func here
+        await Venues.updateVenue(req.params.id);
         res.statusMessage = 'OK';
         res.status(200)
             .send();
@@ -49,7 +49,7 @@ exports.updateDetails = async function (req, res) {
 
 exports.getCategories = async function (req, res) {
     try {
-        // await #TODO Add func here
+        await Venues.getAllCategories();
         res.statusMessage = 'OK';
         res.status(200)
             .send();
@@ -57,3 +57,57 @@ exports.getCategories = async function (req, res) {
         // #TODO Create error responses
     }
 };
+
+exports.addPhoto = async function (req, res) {
+    try {
+        await Venues.addNewPhoto();
+        res.statusMessage = 'OK';
+        res.status(201)
+            .send();
+    } catch (err) {
+        // #TODO Create error responses
+    }
+};
+
+
+exports.getPhoto = async function (req, res) {
+    try {
+        await Venues.getOnePhoto(req.params.id);
+        res.statusMessage = 'OK';
+        res.status(200)
+            .send();
+    } catch (err) {
+        console.error(err);
+        res.statusMessage = 'Not Found';
+        res.status(404)
+            .send();
+    }
+};
+
+
+exports.deletePhoto = async function (req, res) {
+    try {
+        await Venues.removePhoto(req.params.id);
+        res.statusMessage = 'OK';
+        res.status(200)
+            .send();
+    } catch (err) {
+        console.error(err);
+        // TODO error messages
+    }
+};
+
+
+exports.setPrimaryPhoto = async function (req, res) {
+    try {
+        await Venues.makePhotoPrimary(req.params.id);
+        res.statusMessage = 'OK';
+        res.status(200)
+            .send();
+    } catch (err) {
+        console.error(err);
+        // TODO error messages
+    }
+};
+
+
