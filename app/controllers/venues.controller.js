@@ -43,7 +43,7 @@ exports.addNew = async function (req, res) {
 exports.getOne = async function (req, res) {
     try {
         let result = await Venues.getVenue(req.params.id);
-        if(result.rows === undefined) {
+        if(result.rows === 0) {
             res.statusMessage = 'Not Found';
             res.status(404).send('Venue not found');
         } else {
