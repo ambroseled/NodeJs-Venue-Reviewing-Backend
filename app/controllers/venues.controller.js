@@ -43,10 +43,15 @@ exports.addNew = async function (req, res) {
 exports.getOne = async function (req, res) {
     try {
         let result = await Venues.getVenue(req.params.id);
-        res.statusMessage = 'OK';
-        res.status(200)
-            .json(result)
-            .send();
+        if(result.rows === undefined) {
+            res.statusMessage = 'Not Found';
+            res.status(404).send('Venue not found');
+        } else {
+            res.statusMessage = 'OK';
+            res.status(200)
+                .json(result)
+                .send();
+        }
     } catch (err) {
         if (!err.hasBeenLogged) console.error(err);
         res.statusMessage = 'Not Found';
