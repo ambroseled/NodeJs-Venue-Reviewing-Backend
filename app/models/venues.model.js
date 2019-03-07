@@ -1,3 +1,5 @@
+
+
 const db = require("../../config/db");
 
 
@@ -26,14 +28,19 @@ exports.updateVenue = async function (id) {
 };
 
 exports.getVenue = async function (id) {
-
+    let promises = [];
+    let sql = "SELECT * FROM Venue WHERE venue_id = " + id;
+    promises.push(db.getPool().query(sql));
+    return Promise.all(promises);
 };
 
 exports.addNewVenue = async function () {
 
 };
 
-exports.getAllVenues = async function () {
-    let sql = "SELECT * FROM users";
-    return await db.getPool().query(sql);
+exports.getAllVenues = async function (startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude) {
+    let promises = [];
+    let sql = "SELECT * FROM Venue";
+    promises.push(db.getPool().query(sql));
+    return Promise.all(promises);
 };

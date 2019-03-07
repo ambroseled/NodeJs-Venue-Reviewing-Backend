@@ -2,9 +2,24 @@ const Venues = require('../models/venues.model');
 
 exports.viewAll = async function (req, res) {
     try {
-        //let result = await Venues.getAllVenues();
+        let startIndex = req.query.startIndex;
+        let count = req.query.count;
+        let city = req.query.city;
+        let q = req.query.q;
+        let categoryId = req.query.categoryId;
+        let minStarRating = req.query.minStarRating;
+        let maxCostRating = req.query.maxCostRating;
+        let adminId = req.query.adminId;
+        let sortBy = req.query.sortBy;
+        let reverseSort = req.query.reverseSort;
+        let myLatitude = req.query.myLatitude;
+        let myLongitude = req.query.myLongitude;
+
+
+        let result = await Venues.getAllVenues(startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude);
         res.statusMessage = 'OK';
         res.status(200)
+            .json(result)
             .send();
     } catch (err) {
         if (!err.hasBeenLogged) console.error(err);
@@ -27,18 +42,22 @@ exports.addNew = async function (req, res) {
 
 exports.getOne = async function (req, res) {
     try {
-        await Venues.getVenue(req.params.id);
+        let result = await Venues.getVenue(req.params.id);
         res.statusMessage = 'OK';
         res.status(200)
+            .json(result)
             .send();
     } catch (err) {
-        // #TODO Create error responses - 404 Not Found
+        if (!err.hasBeenLogged) console.error(err);
+        res.statusMessage = 'Not Found';
+        res.status(404)
+            .send();
     }
 };
 
 exports.updateDetails = async function (req, res) {
     try {
-        await Venues.updateVenue(req.params.id);
+        await Venues.updateVenue();
         res.statusMessage = 'OK';
         res.status(200)
             .send();
