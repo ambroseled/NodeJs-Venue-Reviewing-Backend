@@ -2,7 +2,7 @@ const Venues = require('../models/venues.model');
 
 exports.viewAll = async function (req, res) {
     try {
-        await Venues.getAllVenues();
+        //let result = await Venues.getAllVenues();
         res.statusMessage = 'OK';
         res.status(200)
             .send();

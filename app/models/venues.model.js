@@ -1,7 +1,7 @@
 const db = require("../../config/db");
 
 
-exports.makePhtotPrimary = async function (id) {
+exports.makePhotoPrimary = async function (id) {
 
 };
 
@@ -34,5 +34,6 @@ exports.addNewVenue = async function () {
 };
 
 exports.getAllVenues = async function () {
-
+    let sql = "SELECT * FROM users";
+    return await db.getPool().query(sql);
 };
