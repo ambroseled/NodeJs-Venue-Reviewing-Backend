@@ -49,7 +49,7 @@ exports.getOne = async function (req, res) {
             } else {
                 res.statusMessage = 'OK';
                 res.status(200)
-                    .json(result);
+                    .json(result[0]);
             }
         });
 
