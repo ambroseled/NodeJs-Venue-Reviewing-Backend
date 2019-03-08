@@ -21,4 +21,8 @@ module.exports = function (app) {
 
     app.route(app.rootUrl + '/venues/:id/photos/:photoFileName/setPrimary')
         .post(venues.setPrimaryPhoto);
+
+    app.route(app.rootUrl + '/venues/:id/reviews')
+        .get(venues.getReview)
+        .post(venues.addReview);
 };

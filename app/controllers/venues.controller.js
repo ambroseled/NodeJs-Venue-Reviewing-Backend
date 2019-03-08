@@ -42,16 +42,18 @@ exports.addNew = async function (req, res) {
 
 exports.getOne = async function (req, res) {
     try {
-        let result = await Venues.getVenue(req.params.id);
-        if(result.rows === 0) {
-            res.statusMessage = 'Not Found';
-            res.status(404).send('Venue not found');
-        } else {
-            res.statusMessage = 'OK';
-            res.status(200)
-                .json(result)
-                .send();
-        }
+        await Venues.getVenue(req.params.id, function(result) {
+            if (1 === 19) {
+                res.statusMessage = 'Not Found';
+                res.status(404).send(result);
+            } else {
+                res.statusMessage = 'OK';
+                res.status(200)
+                    .json(result)
+                    .send();
+            }
+        });
+
     } catch (err) {
         if (!err.hasBeenLogged) console.error(err);
         res.statusMessage = 'Not Found';
@@ -73,9 +75,10 @@ exports.updateDetails = async function (req, res) {
 
 exports.getCategories = async function (req, res) {
     try {
-        await Venues.getAllCategories();
+        let result = await Venues.getAllCategories();
         res.statusMessage = 'OK';
         res.status(200)
+            .json(result)
             .send();
     } catch (err) {
         // #TODO Create error responses
@@ -96,7 +99,10 @@ exports.addPhoto = async function (req, res) {
 
 exports.getPhoto = async function (req, res) {
     try {
-        await Venues.getOnePhoto(req.params.id);
+        let id = req.query.id;
+        let filename = req.query.photoFilename;
+
+        let result = await Venues.getOnePhoto(id, filename);
         res.statusMessage = 'OK';
         res.status(200)
             .send();
@@ -125,6 +131,33 @@ exports.deletePhoto = async function (req, res) {
 exports.setPrimaryPhoto = async function (req, res) {
     try {
         await Venues.makePhotoPrimary(req.params.id);
+        res.statusMessage = 'OK';
+        res.status(200)
+            .send();
+    } catch (err) {
+        console.error(err);
+        // TODO error messages
+    }
+};
+
+
+exports.getReview = async function (req, res) {
+    try {
+        let result = await Venues.getReview(req.params.id);
+        res.statusMessage = 'OK';
+        res.status(200)
+            .json(result)
+            .send();
+    } catch (err) {
+        console.error(err);
+        // TODO error messages
+    }
+};
+
+
+exports.addReview = async function (req, res) {
+    try {
+        await Venues.saveReview(req.query.id);
         res.statusMessage = 'OK';
         res.status(200)
             .send();
