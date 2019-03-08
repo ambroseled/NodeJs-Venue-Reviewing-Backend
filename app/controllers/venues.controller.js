@@ -78,7 +78,7 @@ exports.getCategories = async function (req, res) {
         let result = await Venues.getAllCategories();
         res.statusMessage = 'OK';
         res.status(200)
-            .json(result)
+            .json(result[0])
             .send();
     } catch (err) {
         // #TODO Create error responses
