@@ -35,10 +35,9 @@ exports.getVenue = async function (id, done) {
     let sql = "SELECT * FROM Venue WHERE venue_id = ?";
     promises.push(db.getPool().query(sql, id, function(err, rows) {
         if (rows.length === 0) {
-            return done({"ERROR":'Venue id: ' + id + ' not found'});
+            return done({"ERROR":'Venue id: ' + id + ' not found'}, null);
         }
-        console.log(rows);
-        return done(rows);
+        return done(null, rows);
     }));
     return Promise.all(promises);
 };

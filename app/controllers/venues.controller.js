@@ -42,23 +42,20 @@ exports.addNew = async function (req, res) {
 
 exports.getOne = async function (req, res) {
     try {
-        await Venues.getVenue(req.params.id, function(result) {
-            if (1 === 19) {
+        await Venues.getVenue(req.params.id, function(err, result) {
+            if (err) {
                 res.statusMessage = 'Not Found';
-                res.status(404).send(result);
+                res.status(404).send(err);
             } else {
                 res.statusMessage = 'OK';
                 res.status(200)
-                    .json(result)
-                    .send();
+                    .json(result);
             }
         });
 
     } catch (err) {
         if (!err.hasBeenLogged) console.error(err);
-        res.statusMessage = 'Not Found';
-        res.status(404)
-            .send();
+
     }
 };
 
