@@ -41,22 +41,16 @@ exports.addNew = async function (req, res) {
 };
 
 exports.getOne = async function (req, res) {
-    try {
-        await Venues.getVenue(req.params.id, function(err, result) {
-            if (err) {
-                res.statusMessage = 'Not Found';
-                res.status(404).send(err);
-            } else {
-                res.statusMessage = 'OK';
-                res.status(200)
-                    .json(result[0]);
-            }
-        });
+    await Venues.getVenue(req.params.id, function(err, result) {
+        if (err) {
+            res.statusMessage = 'Not Found';
+            res.status(404).send("Venue not found");
+        } else {
+            res.statusMessage = 'OK';
+            res.json(result[0]);
+        }
+    });
 
-    } catch (err) {
-        if (!err.hasBeenLogged) console.error(err);
-
-    }
 };
 
 exports.updateDetails = async function (req, res) {
@@ -72,11 +66,10 @@ exports.updateDetails = async function (req, res) {
 
 exports.getCategories = async function (req, res) {
     try {
-        let result = await Venues.getAllCategories();
-        res.statusMessage = 'OK';
-        res.status(200)
-            .json(result[0])
-            .send();
+        await Venues.getAllCategories(function(err, result) {
+            res.statusMessage = 'OK';
+            res.json(result);
+        });
     } catch (err) {
         // #TODO Create error responses
     }

@@ -1,5 +1,3 @@
-
-
 const db = require("../../config/db");
 
 
@@ -19,11 +17,22 @@ exports.addNewPhoto = async function () {
 
 };
 
-exports.getAllCategories = async function () {
-    let promises = [];
-    let sql = "SELECT * FROM VenueCategory";
-    promises.push(db.getPool().query(sql));
-    return Promise.all(promises);
+exports.getAllCategories = async function (done) {
+    new Promise((resolve, reject) => {
+        let sqlQuery = "SELECT * FROM VenueCategory";
+        db.getPool().query(sqlQuery, function(err, rows) {
+            if (err) reject(err);
+            resolve(rows);
+        });
+
+    }).then((rows) => {
+        done(null, rows);
+    }, reason => {
+        throw new Error(reason);
+    }).catch((reason => {
+        console.log(reason);
+        done(reason, null);
+    }));
 };
 
 exports.updateVenue = async function (id) {
@@ -31,15 +40,22 @@ exports.updateVenue = async function (id) {
 };
 
 exports.getVenue = async function (id, done) {
-    let promises = [];
-    let sql = "SELECT * FROM Venue WHERE venue_id = ?";
-    promises.push(db.getPool().query(sql, id, function(err, rows) {
-        if (rows.length === 0) {
-            return done({"ERROR":'Venue id: ' + id + ' not found'}, null);
-        }
-        return done(null, rows);
+    let venuePromise = new Promise((resolve, reject) => {
+        let sqlQuery = "SELECT * FROM Venue WHERE venue_id = ?";
+        db.getPool().query(sqlQuery, id, function(err, rows) {
+            if (rows.length === 0) return reject(new Error('404 Venue Not Found'));
+            else if (err) reject(err);
+            resolve(rows);
+        });
+
+    }).then((rows) => {
+        done(null, rows);
+    }, reason => {
+        throw new Error(reason);
+    }).catch((reason => {
+        console.log(reason);
+        done(reason, null);
     }));
-    return Promise.all(promises);
 };
 
 exports.addNewVenue = async function () {
