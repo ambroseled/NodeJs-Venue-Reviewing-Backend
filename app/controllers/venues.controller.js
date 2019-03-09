@@ -46,8 +46,29 @@ exports.getOne = async function (req, res) {
             res.statusMessage = 'Not Found';
             res.status(404).send("Venue not found");
         } else {
+            let photosList = [];
+            let venue = result[0];
+            let displayFormat = {
+                "venueName": venue.venue_name,
+                "admin": {
+                    "userId": venue.user_id,
+                    "username": venue.username
+                },
+                "category": {
+                    "categoryId": venue.category_id,
+                    "categoryName": venue.category_name,
+                    "categoryDescription": venue.category_description
+                },
+                "shortDescription": venue.short_description,
+                "city": venue.city,
+                "dateAdded": venue.date_added,
+                "address": venue.address,
+                "latitude": venue.latitude,
+                "longitude": venue.longitude,
+                "photos": photosList
+            };
             res.statusMessage = 'OK';
-            res.json(result[0]);
+            res.json(displayFormat);
         }
     });
 
@@ -71,7 +92,6 @@ exports.getCategories = async function (req, res) {
                 res.statusMessage = "Error retrieving categories";
                 res.status(500).send();
             }
-
             res.statusMessage = 'OK';
             res.json(result);
         });

@@ -40,14 +40,13 @@ exports.updateVenue = async function (id) {
 };
 
 exports.getVenue = async function (id, done) {
-    let venuePromise = new Promise((resolve, reject) => {
-        let sqlQuery = "SELECT * FROM Venue WHERE venue_id = ?";
+    new Promise((resolve, reject) => {
+        let sqlQuery = "SELECT venue_id, venue_name, user_id, username, Venue.category_id, category_name, category_description, short_description, city, long_description, date_added, address, latitude, longitude FROM Venue JOIN User ON Venue.admin_id = User.user_id JOIN VenueCategory ON Venue.category_id = VenueCategory.category_id WHERE venue_id = ?";
         db.getPool().query(sqlQuery, id, function(err, rows) {
             if (rows.length === 0) return reject(new Error('404 Venue Not Found'));
             else if (err) reject(err);
             resolve(rows);
         });
-
     }).then((rows) => {
         done(null, rows);
     }, reason => {
