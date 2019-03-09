@@ -67,6 +67,11 @@ exports.updateDetails = async function (req, res) {
 exports.getCategories = async function (req, res) {
     try {
         await Venues.getAllCategories(function(err, result) {
+            if (err) {
+                res.statusMessage = "Error retrieving categories";
+                res.status(500).send();
+            }
+
             res.statusMessage = 'OK';
             res.json(result);
         });

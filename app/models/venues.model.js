@@ -19,7 +19,7 @@ exports.addNewPhoto = async function () {
 
 exports.getAllCategories = async function (done) {
     new Promise((resolve, reject) => {
-        let sqlQuery = "SELECT * FROM VenueCategory";
+        let sqlQuery = "SELECT category_Id AS categoryId, category_name AS categoryName, category_description AS categoryDescription FROM VenueCategory";
         db.getPool().query(sqlQuery, function(err, rows) {
             if (err) reject(err);
             resolve(rows);
