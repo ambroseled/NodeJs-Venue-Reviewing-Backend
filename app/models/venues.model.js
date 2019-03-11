@@ -109,7 +109,39 @@ exports.addNewVenue = async function (venueBody) {
 };
 
 exports.getAllVenues = async function (startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude) {
-    let queryString = "Select * FROM Venue";
+    let argsQuery = [];
+    let argsValues = [];
+    if (city) {
+        argsQuery.push("city = ?");
+        argsValues.push(city);
+    } if (q) {
+        argsQuery.push("venue_name LIKE = ?");
+        argsValues.push(city);
+    } if (categoryId) {
+        argsQuery.push("category_id = ?");
+        argsValues.push(categoryId);
+    } if (minStarRating) {
+        argsQuery.push("star_rating >= ?");
+        argsValues.push(minStarRating);
+    } if (maxCostRating) {
+        argsQuery.push("cost_rating <= ?");
+        argsValues.push(maxCostRating);
+    } if (adminId) {
+        argsQuery.push("admin_id = ?");
+        argsValues.push(adminId);
+    } if (sortBy) {
+        if (sortBy === 'STAR_RATING') {
+            argsQuery.push('SORT BY star_rating');
+        } else if (sortBy === 'COST_RATING') {
+            argsQuery.push('SORT BY cost_rating');
+        } else if (sortBy === 'DISTANCE') {
+            //TODO
+        }
+    }
+
+
+
+    let queryString = "Select Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, AVG(star_rating), mode_cost_rating FROM Venue LEFT OUTER JOIN Review R on Venue.venue_id = R.reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON Venue.venue_id = M.venue_id";
     try {
         let venueRows = await db.getPool().query(queryString);
 

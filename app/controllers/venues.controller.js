@@ -19,6 +19,7 @@ exports.viewAll = async function (req, res) {
         .then((venueRows) => {
                 let  venues =[];
                 if (venueRows) {
+                    console.log(venueRows);
                     for (let i = 0; i < venueRows.length; i++) {
                         venues.push(
                             {
@@ -28,7 +29,11 @@ exports.viewAll = async function (req, res) {
                                 "city" : venueRows[i]['city'],
                                 "shortDescription" : venueRows[i]['short_description'],
                                 "latitude" : venueRows[i]['latitude'],
-                                "longitude" : venueRows[i]['longitude']
+                                "longitude" : venueRows[i]['longitude'],
+                                "meanStarRating" : venueRows[i]['AVG(star_rating)'],
+                                "modeCostRating" : venueRows[i]['mode_cost_rating'],
+                                "primaryPhoto" : "noot",
+                                "distance" : "noot"
                             }
                         )
                     }
