@@ -9,6 +9,12 @@ exports.removePhoto = async function (id) {
     //TODO
 };
 
+/**
+ * Gets a photo from that database using the passed venue id and filename
+ * @param id the venue id of the photo
+ * @param filename the filename of the photo
+ * @returns {Promise<*|undefined>}
+ */
 exports.getOnePhoto = async function (id, filename) {
     let queryString = "Select photo_description FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
     try {
@@ -27,6 +33,10 @@ exports.addNewPhoto = async function () {
     //TODO
 };
 
+/**
+ * Gets all categories out of the database
+ * @returns {Promise<*|undefined>}
+ */
 exports.getAllCategories = async function () {
     let queryString = "Select * FROM VenueCategory";
     try {

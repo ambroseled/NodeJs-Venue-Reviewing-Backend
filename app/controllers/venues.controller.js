@@ -48,7 +48,7 @@ exports.viewAll = async function (req, res) {
 };
 
 exports.addNew = async function (req, res) {
-    await Venues.addNewVenue();
+    //TODO
 };
 
 exports.getOne = async function (req, res) {
