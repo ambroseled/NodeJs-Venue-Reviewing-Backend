@@ -2,41 +2,44 @@ const db = require("../../config/db");
 
 
 exports.makePhotoPrimary = async function (id) {
-
+    //TODO
 };
 
 exports.removePhoto = async function (id) {
-
+    //TODO
 };
 
 exports.getOnePhoto = async function (id, filename) {
+    let queryString = "Select photo_description FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
+    try {
+        let photoRows = await db.getPool().query(queryString, [id, filename]);
 
+        if (photoRows.length === 0) {
+            return Promise.reject(new Error('Not Found'));
+        }
+        return Promise.resolve(photoRows[0]);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 exports.addNewPhoto = async function () {
-
+    //TODO
 };
 
-exports.getAllCategories = async function (done) {
-    new Promise((resolve, reject) => {
-        let sqlQuery = "SELECT category_Id AS categoryId, category_name AS categoryName, category_description AS categoryDescription FROM VenueCategory";
-        db.getPool().query(sqlQuery, function(err, rows) {
-            if (err) reject(err);
-            resolve(rows);
-        });
+exports.getAllCategories = async function () {
+    let queryString = "Select * FROM VenueCategory";
+    try {
+        let categoryRows = await db.getPool().query(queryString);
 
-    }).then((rows) => {
-        done(null, rows);
-    }, reason => {
-        throw new Error(reason);
-    }).catch((reason => {
-        console.log(reason);
-        done(reason, null);
-    }));
+        return Promise.resolve(categoryRows);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 exports.updateVenue = async function (id) {
-
+    //TODO
 };
 
 exports.getVenue = async function (id) {
@@ -62,28 +65,39 @@ exports.getVenue = async function (id) {
 };
 
 exports.addNewVenue = async function () {
-
+    //TODO
 };
 
 exports.getAllVenues = async function (startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude) {
+    let queryString = "Select * FROM Venue";
+    try {
+        let venueRows = await db.getPool().query(queryString);
 
-    //TODO Handle the params
-    let promises = [];
-    let sql = "SELECT * FROM Venue";
-    promises.push(db.getPool().query(sql));
-    return Promise.all(promises);
+        return Promise.resolve(venueRows);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 
-exports.getReview = async function (id) {
-    let promises = [];
-    let sql = "SELECT * FROM Review WHERE review_id = ?";
-    promises.push(db.getPool().query(sql, id));
-    return Promise.all(promises);
+exports.getOneReview = async function (id) {
+    let queryString = "Select review_author_id, username, review_body, star_rating, cost_rating, time_posted " +
+        "FROM Review JOIN User ON review_author_id = user_id WHERE reviewed_venue_id = ?";
+    try {
+
+        let reviewRows = await db.getPool().query(queryString, id);
+        console.log('beans');
+        if (reviewRows.length === 0) {
+            return Promise.reject(new Error('Not Found'));
+        }
+        return Promise.resolve(reviewRows[0]);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 
 exports.saveReview = async function (id) {
-
+    //TODO
 };
 
