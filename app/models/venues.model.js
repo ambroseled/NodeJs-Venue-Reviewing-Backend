@@ -39,22 +39,26 @@ exports.updateVenue = async function (id) {
 
 };
 
-exports.getVenue = async function (id, done) {
-    new Promise((resolve, reject) => {
-        let sqlQuery = "SELECT venue_id, venue_name, user_id, username, Venue.category_id, category_name, category_description, short_description, city, long_description, date_added, address, latitude, longitude FROM Venue JOIN User ON Venue.admin_id = User.user_id JOIN VenueCategory ON Venue.category_id = VenueCategory.category_id WHERE venue_id = ?";
-        db.getPool().query(sqlQuery, id, function(err, rows) {
-            if (rows.length === 0) return reject(new Error('404 Venue Not Found'));
-            else if (err) reject(err);
-            resolve(rows);
-        });
-    }).then((rows) => {
-        done(null, rows);
-    }, reason => {
-        throw new Error(reason);
-    }).catch((reason => {
-        console.log(reason);
-        done(reason, null);
-    }));
+exports.getVenue = async function (id) {
+    let queryString = "SELECT venue_name, admin_id, username, Venue.category_id, category_name, category_description, " +
+        "city, short_description, long_description, date_added, address, latitude, longitude FROM Venue JOIN User ON " +
+        "Venue.admin_id = User.user_id JOIN VenueCategory ON Venue.category_id = VenueCategory.category_id WHERE " +
+        "Venue.venue_id = ?";
+
+    let photoQueryString = "SELECT photo_filename, photo_description, is_primary FROM VenuePhoto WHERE venue_id = ?";
+
+    try {
+        let venueRows = await db.getPool().query(queryString, id);
+
+        if (venueRows.length === 0) {
+            return Promise.reject(new Error('Not Found'));
+        } else {
+            let photoRows = db.getPool().query(photoQueryString, venueRows[0]['admin_id']);
+            return Promise.resolve(venueRows[0], photoRows);
+        }
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 exports.addNewVenue = async function () {
@@ -82,3 +86,4 @@ exports.getReview = async function (id) {
 exports.saveReview = async function (id) {
 
 };
+

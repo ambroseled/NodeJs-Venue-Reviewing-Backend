@@ -41,36 +41,60 @@ exports.addNew = async function (req, res) {
 };
 
 exports.getOne = async function (req, res) {
-    await Venues.getVenue(req.params.id, function(err, result) {
-        if (err) {
-            res.statusMessage = 'Not Found';
-            res.status(404).send("Venue not found");
-        } else {
-            let photosList = [];
-            let venue = result[0];
-            let displayFormat = {
-                "venueName": venue.venue_name,
-                "admin": {
-                    "userId": venue.user_id,
-                    "username": venue.username
-                },
-                "category": {
-                    "categoryId": venue.category_id,
-                    "categoryName": venue.category_name,
-                    "categoryDescription": venue.category_description
-                },
-                "shortDescription": venue.short_description,
-                "city": venue.city,
-                "dateAdded": venue.date_added,
-                "address": venue.address,
-                "latitude": venue.latitude,
-                "longitude": venue.longitude,
-                "photos": photosList
+    await Venues.getVenue(req.params.id)
+        .then((venueRow, photoRows) => {
+           let  photos =[];
+           if (photoRows) {
+               for (let i = 0; i < photoRows.length; i++) {
+                   photos.push(
+                       {
+                           "photoFilename" : photos[i]['photo_filename'],
+                           "photoDescription" : photos[i]['photo_description'],
+                           "isPrimary" : photos[i]['is_primary']
+                       }
+                   )
+               }
+           }
+
+            let toDisplay = {
+                "venueName" : venueRow['venue_name'],
+                "admin" :
+                    {
+                        "userId" : venueRow['admin_id'],
+                        "username" : venueRow['username']
+                    },
+                "category" :
+                    {
+                        "categoryId" : venueRow['category_id'],
+                        "categoryName" : venueRow['category_name'],
+                        "categoryDescription" : venueRow['category_descriptions']
+                    },
+                "city" : venueRow['city'],
+                "shortDescription" : venueRow['short_description'],
+                "longDescription" : venueRow['long_description'],
+                "dateAdded" : venueRow['date_added'],
+                "address" : venueRow['address'],
+                "latitude" : venueRow['latitude'],
+                "longitude" : venueRow['longitude'],
+                "photos" : photos
             };
+
             res.statusMessage = 'OK';
-            res.json(displayFormat);
+            res.json(toDisplay);
+        },
+            (err) => {
+                if (err.message === 'Not Found') {
+                    res.statusMessage = 'Not Found';
+                    res.status(404).send('Venue: ' + req.params.id + ' Not Found');
+                }
+            }
+        ).catch(
+        (error) => {
+            console.error(error);
+            res.statusMessage = 'Internal Server Error';
+            res.status(500).send('Internal Server Error');
         }
-    });
+    );
 
 };
 
@@ -179,6 +203,29 @@ exports.addReview = async function (req, res) {
     } catch (err) {
         console.error(err);
         // TODO error messages
+    }
+};
+
+
+
+exports.getVenue = async function (venueID) {
+    let getVenueSql = "SELECT venue_name, admin_id, username, Venue.category_id, category_name, category_description, " +
+        "city, short_description, long_description, date_added, address, latitude, longitude FROM Venue " +
+        "JOIN User ON Venue.admin_id = User.user_id JOIN VenueCategory ON Venue.category_id = VenueCategory.category_id " +
+        "WHERE Venue.venue_id = ?";
+
+    let getPhotosSql = "SELECT photo_filename, photo_description, is_primary FROM VenuePhoto WHERE venue_id = ?";
+    try {
+        let venue = await db.getPool().query(getVenueSql, venueID);
+        if (venue.length === 0) {
+            return Promise.reject(new Error('404'));
+        } else {
+            let venueAdmin = venue[0]['admin_id'];
+            let photos = await db.getPool().query(getPhotosSql, venueAdmin);
+            return Promise.resolve(venue[0], photos);
+        }
+    } catch (err) {
+        return Promise.reject(err);
     }
 };
 
