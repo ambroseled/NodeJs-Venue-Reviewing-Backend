@@ -109,42 +109,52 @@ exports.addNewVenue = async function (venueBody) {
 };
 
 exports.getAllVenues = async function (startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude) {
-    let argsQuery = [];
+    let argsWhere = [];
     let argsValues = [];
+    let argsSort = null;
     if (city) {
-        argsQuery.push("city = ?");
+        argsWhere.push("city = ?");
         argsValues.push(city);
     } if (q) {
-        argsQuery.push("venue_name LIKE = ?");
-        argsValues.push(city);
+        argsWhere.push("venue_name LIKE = ?");
+        argsValues.push("%" + q + "%");
     } if (categoryId) {
-        argsQuery.push("category_id = ?");
+        argsWhere.push("category_id = ?");
         argsValues.push(categoryId);
     } if (minStarRating) {
-        argsQuery.push("star_rating >= ?");
+        argsWhere.push("star_rating >= ?");
         argsValues.push(minStarRating);
     } if (maxCostRating) {
-        argsQuery.push("cost_rating <= ?");
+        argsWhere.push("cost_rating <= ?");
         argsValues.push(maxCostRating);
     } if (adminId) {
-        argsQuery.push("admin_id = ?");
+        argsWhere.push("admin_id = ?");
         argsValues.push(adminId);
     } if (sortBy) {
-        if (sortBy === 'STAR_RATING') {
-            argsQuery.push('SORT BY star_rating');
-        } else if (sortBy === 'COST_RATING') {
-            argsQuery.push('SORT BY cost_rating');
+        if (sortBy === 'COST_RATING') {
+            argsSort = ' ORDER BY mode_cost_rating';
         } else if (sortBy === 'DISTANCE') {
-            //TODO
+        //TODO
         }
     }
 
+    let queryString = "SELECT Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, AVG(star_rating), mode_cost_rating FROM Venue LEFT OUTER JOIN Review on Venue.venue_id = reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON Venue.venue_id = M.venue_id";
 
+    if (argsWhere.length > 0) {
+        queryString += " WHERE " + argsWhere.join(", ");
+    }
 
-    let queryString = "Select Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, AVG(star_rating), mode_cost_rating FROM Venue LEFT OUTER JOIN Review R on Venue.venue_id = R.reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON Venue.venue_id = M.venue_id";
+    queryString += " GROUP BY Venue.venue_id";
+
+    if (argsSort) {
+        queryString += argsSort;
+    } else {
+        queryString += ' ORDER BY AVG(star_rating)';
+    }
+
+    console.log(queryString);
     try {
-        let venueRows = await db.getPool().query(queryString);
-
+        let venueRows = await db.getPool().query(queryString, argsValues);
         return Promise.resolve(venueRows);
     } catch(err) {
         return Promise.reject(err);

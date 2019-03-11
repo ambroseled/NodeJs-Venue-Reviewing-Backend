@@ -19,7 +19,6 @@ exports.viewAll = async function (req, res) {
         .then((venueRows) => {
                 let  venues =[];
                 if (venueRows) {
-                    console.log(venueRows);
                     for (let i = 0; i < venueRows.length; i++) {
                         venues.push(
                             {
