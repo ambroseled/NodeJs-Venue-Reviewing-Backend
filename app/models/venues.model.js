@@ -87,6 +87,13 @@ exports.getVenue = async function (id) {
 };
 
 exports.addNewVenue = async function (venueBody) {
+    if (venueBody['city'] === '') {
+        return Promise.reject('No City');
+    } else if (venueBody['latitude'] > 90.0) {
+        return Promise.reject('Invalid latitude');
+    } else if (venueBody['longitude'] < -180.0) {
+        return Promise.reject('Invalid longitude');
+    }
     let queryString = "INSERT INTO Venue (venue_name, admin_id, category_id, city, short_description, long_description, address, " +
         "latitude, longitude) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?)";
 

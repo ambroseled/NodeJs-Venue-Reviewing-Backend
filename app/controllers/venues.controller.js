@@ -54,13 +54,26 @@ exports.addNew = async function (req, res) {
             let toDisplay = {
                 "venueId" : result['insertId']
             };
-            res.statusMessage = 'OK';
+            res.statusMessage = 'CREATED';
+            res.status(201);
             res.json(toDisplay);
         },
             (err) => {
-                if (err.message === 'Unauthorized') {
-                    res.statusMessage = 'Unauthorized';
-                    res.status(404).send('Unauthorized');
+                if (err.message === 'No City') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(404).send('No city provided');
+                }
+            },
+            (err) => {
+                if (err.message === 'Invalid Latitude') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(404).send('Invalid Latitude');
+                }
+            },
+            (err) => {
+                if (err.message === 'Invalid Longitude') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(404).send('Invalid Longitude');
                 }
             }).catch(
             (error) => {
