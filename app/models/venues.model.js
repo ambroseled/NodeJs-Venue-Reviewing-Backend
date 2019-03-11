@@ -48,8 +48,20 @@ exports.getAllCategories = async function () {
     }
 };
 
-exports.updateVenue = async function (id) {
-    //TODO
+exports.updateVenue = async function (venueBody, id) {
+    let queryString = "UPDATE TABLE Venue SET venue_name = ?, category_id = ?, city = ?, short_description = ?," +
+        "long_description = ?, address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
+
+    let values = [venueBody['venueName'], venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
+        venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude'], id];
+
+    try {
+        let result = await db.getPool().query(queryString, values);
+
+        return Promise.resolve(result);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 exports.getVenue = async function (id) {
@@ -74,8 +86,19 @@ exports.getVenue = async function (id) {
     }
 };
 
-exports.addNewVenue = async function () {
-    //TODO
+exports.addNewVenue = async function (venueBody) {
+    let queryString = "INSERT INTO Venue (venue_name, admin_id, category_id, city, short_description, long_description, address, " +
+        "latitude, longitude) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?)";
+
+    let values = [venueBody['venueName'], 1, venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
+    venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude']];
+
+    try {
+        let result = await db.getPool().query(queryString, values);
+        return Promise.resolve(result);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 exports.getAllVenues = async function (startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude) {

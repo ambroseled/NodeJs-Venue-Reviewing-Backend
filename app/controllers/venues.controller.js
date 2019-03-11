@@ -48,7 +48,27 @@ exports.viewAll = async function (req, res) {
 };
 
 exports.addNew = async function (req, res) {
-    //TODO
+    let venueBody = req.body;
+    await Venues.addNewVenue(venueBody)
+        .then((result) => {
+            let toDisplay = {
+                "venueId" : result['insertId']
+            };
+            res.statusMessage = 'OK';
+            res.json(toDisplay);
+        },
+            (err) => {
+                if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(404).send('Unauthorized');
+                }
+            }).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Bad Request';
+                res.status(400).send('Bad Request');
+            }
+        );
 };
 
 exports.getOne = async function (req, res) {
@@ -110,7 +130,28 @@ exports.getOne = async function (req, res) {
 };
 
 exports.updateDetails = async function (req, res) {
-    //TODO
+    let venueBody = req.body;
+    let id = req.params.id;
+    await Venues.updateVenue(venueBody, id)
+        .then((result) => {
+                res.statusMessage = 'OK';
+                res.json("OK");
+            },
+            (err) => {
+                if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(404).send('Unauthorized');
+                } else if (err.message === 'Not Found') {
+                    res.statusMessage = 'Not Found';
+                    res.status(404).send('Not Found');
+                }
+            }).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Bad Request';
+                res.status(400).send('Bad Request');
+            }
+        );
 };
 
 exports.getCategories = async function (req, res) {
