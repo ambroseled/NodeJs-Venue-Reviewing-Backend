@@ -116,8 +116,8 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         argsWhere.push("city = ?");
         argsValues.push(city);
     } if (q) {
-        argsWhere.push("venue_name LIKE = ?");
-        argsValues.push("%" + q + "%");
+        argsWhere.push("venue_name LIKE ?");
+        argsValues.push('%' + q + '%');
     } if (categoryId) {
         argsWhere.push("category_id = ?");
         argsValues.push(categoryId);
