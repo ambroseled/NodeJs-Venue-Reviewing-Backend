@@ -3,11 +3,11 @@ const Users = require('../models/users.model');
 exports.getUser = async function (req, res) {
     await Users.getOneUser(req.params.id)
         .then((userRow) => {
-
+                // Below blocked used when not authenticated
+            //TODO different result when authenticated
                 let toDisplay =
                     {
                         "username" : userRow['username'],
-                        "email" : userRow['email'],
                         "givenName" : userRow['given_name'],
                         "familyName" : userRow['family_name']
                 };
