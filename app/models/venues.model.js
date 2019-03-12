@@ -109,6 +109,10 @@ exports.addNewVenue = async function (venueBody) {
 };
 
 exports.getAllVenues = async function (startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude) {
+    if (minStarRating > 5 || minStarRating < 0) {
+        return Promise.reject("Bad Request");
+    }
+
     let argsWhere = [];
     let argsValues = [];
     let argsSort = null;
