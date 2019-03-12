@@ -112,6 +112,8 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
     let argsWhere = [];
     let argsValues = [];
     let argsSort = null;
+    let argsHaving = [];
+    let havingValues = [];
     if (city) {
         argsWhere.push("city = ?");
         argsValues.push(city);
@@ -122,11 +124,11 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         argsWhere.push("category_id = ?");
         argsValues.push(categoryId);
     } if (minStarRating) {
-        argsWhere.push("star_rating >= ?");
-        argsValues.push(minStarRating);
+        argsHaving.push("AVG(star_rating) >= ?");
+        havingValues.push(minStarRating);
     } if (maxCostRating) {
-        argsWhere.push("cost_rating <= ?");
-        argsValues.push(maxCostRating);
+        argsHaving.push("AVG(cost_rating) <= ?");
+        havingValues.push(maxCostRating);
     } if (adminId) {
         argsWhere.push("admin_id = ?");
         argsValues.push(adminId);
@@ -146,6 +148,10 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
 
     queryString += " GROUP BY Venue.venue_id";
 
+    if (argsHaving) {
+        queryString += " HAVING " + argsHaving.join(" AND ");
+    }
+
     if (argsSort) {
         queryString += argsSort;
     } else {
@@ -153,7 +159,7 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
     }
 
     try {
-        let venueRows = await db.getPool().query(queryString, argsValues);
+        let venueRows = await db.getPool().query(queryString, argsValues.concat(havingValues));
         let photoRows = await db.getPool().query(primaryPhotoQuery);
         let rows = [venueRows, photoRows];
         return Promise.resolve(rows);
