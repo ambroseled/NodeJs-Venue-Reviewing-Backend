@@ -16,7 +16,9 @@ exports.viewAll = async function (req, res) {
 
     await Venues.getAllVenues(startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy,
         reverseSort, myLatitude, myLongitude)
-        .then((venueRows) => {
+        .then((rows) => {
+                let venueRows = rows[0];
+                let photoRows = rows[1];
                 let  venues =[];
                 if (venueRows) {
                     for (let i = 0; i < venueRows.length; i++) {
@@ -31,8 +33,8 @@ exports.viewAll = async function (req, res) {
                                 "longitude" : venueRows[i]['longitude'],
                                 "meanStarRating" : venueRows[i]['AVG(star_rating)'],
                                 "modeCostRating" : venueRows[i]['mode_cost_rating'],
-                                "primaryPhoto" : "noot",
-                                "distance" : "noot"
+                                "primaryPhoto" : photoRows[i]['photo_filename'],
+                                "distance" : 0
                             }
                         )
                     }

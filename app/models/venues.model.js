@@ -139,9 +139,9 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
     }
 
     let queryString = "SELECT Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, AVG(star_rating), mode_cost_rating FROM Venue LEFT OUTER JOIN Review on Venue.venue_id = reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON Venue.venue_id = M.venue_id";
-
+    let primaryPhotoQuery = "SELECT Venue.venue_id, photo_filename FROM Venue LEFT OUTER JOIN VenuePhoto VP on Venue.venue_id = VP.venue_id";
     if (argsWhere.length > 0) {
-        queryString += " WHERE " + argsWhere.join(" AND ");
+        queryString += " WHERE is_primary" + argsWhere.join(" AND ");
     }
 
     queryString += " GROUP BY Venue.venue_id";
@@ -152,10 +152,11 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         queryString += ' ORDER BY AVG(star_rating)';
     }
 
-    console.log(queryString);
     try {
         let venueRows = await db.getPool().query(queryString, argsValues);
-        return Promise.resolve(venueRows);
+        let photoRows = await db.getPool().query(primaryPhotoQuery);
+        let rows = [venueRows, photoRows];
+        return Promise.resolve(rows);
     } catch(err) {
         return Promise.reject(err);
     }
