@@ -151,6 +151,7 @@ exports.getOne = async function (req, res) {
 exports.updateDetails = async function (req, res) {
     let venueBody = req.body;
     let id = req.params.id;
+
     await Venues.updateVenue(venueBody, id)
         .then((result) => {
                 res.statusMessage = 'OK';
@@ -252,9 +253,9 @@ exports.getReview = async function (req, res) {
                     "starRating" : reviewRow['star_rating'],
                     "costRating" : reviewRow['cost_rating'],
                     "timePosted" : reviewRow['time_posted']
-                }
+                };
             res.statusMessage = 'OK';
-            res.send(reviewRow);
+            res.send(toDisplay);
             },
             (err) => {
                 if (err.message === 'Not Found') {
@@ -273,6 +274,36 @@ exports.getReview = async function (req, res) {
 
 
 exports.addReview = async function (req, res) {
-    //TODO
+    await Venues.saveReview(req.query.reviewBody, req.query.starRating, req.query.costRating, req.params.id)
+        .then(() => {
+                res.statusMessage = 'Created';
+                res.status(201);
+                res.send();
+            },
+            (err) => {
+                if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(404).send('Bad Request');
+                }
+            },
+            (err) => {
+                if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(404).send('Unauthorized');
+                }
+            },
+            (err) => {
+                if (err.message === 'Forbidden') {
+                    res.statusMessage = 'Forbidden';
+                    res.status(404).send('Forbidden');
+                }
+            }
+        ).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
+            }
+        );
 };
 

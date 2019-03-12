@@ -54,11 +54,13 @@ exports.updateVenue = async function (venueBody, id) {
 
     let values = [venueBody['venueName'], venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
         venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude'], id];
-
+    console.log(queryString);
+    console.log(values);
     try {
-        let result = await db.getPool().query(queryString, values);
 
-        return Promise.resolve(result);
+        let result = await db.getPool().query(queryString, values);
+        console.log("beep");
+        return Promise.resolve();
     } catch(err) {
         return Promise.reject(err);
     }
@@ -190,7 +192,23 @@ exports.getOneReview = async function (id) {
 };
 
 
-exports.saveReview = async function (id) {
-    Promise.reject("Noot");
+exports.saveReview = async function (reviewBody, starRating, costRating, id) {
+    if (reviewBody === null || starRating === null || costRating === null || id === null) {
+        return Promise.reject("Bad Request");
+    }
+
+    let author_id = 1; //TODO get logged in user
+    let time_posted = (new Date()).getTime();
+    let queryString = "INSERT INTO Review (reviewed_venue_id, review_author_id, review_body, star_rating, cost_rating, " +
+        "time_posted) VALUES (?, ?, ?, ?, ?, ?)";
+
+    let values = [id, author_id, reviewBody, starRating, costRating, time_posted];
+    console.log("Noot");
+    try {
+        let result = await db.getPool().query(queryString, values);
+        return Promise.resolve(result);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
