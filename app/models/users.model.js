@@ -45,4 +45,5 @@ exports.getOnePhoto = async function (id, filename) {
     } catch(err) {
         return Promise.reject(err);
     }*/
+    Promise.reject("Noot");
 };

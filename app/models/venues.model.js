@@ -2,11 +2,11 @@ const db = require("../../config/db");
 
 
 exports.makePhotoPrimary = async function (id) {
-    //TODO
+    Promise.reject("Noot");
 };
 
 exports.removePhoto = async function (id) {
-    //TODO
+    Promise.reject("Noot");
 };
 
 /**
@@ -30,7 +30,7 @@ exports.getOnePhoto = async function (id, filename) {
 };
 
 exports.addNewPhoto = async function () {
-    //TODO
+    Promise.reject("Noot");
 };
 
 /**
@@ -191,6 +191,6 @@ exports.getOneReview = async function (id) {
 
 
 exports.saveReview = async function (id) {
-    //TODO
+    Promise.reject("Noot");
 };
 
