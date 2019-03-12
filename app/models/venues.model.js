@@ -148,7 +148,7 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
 
     queryString += " GROUP BY Venue.venue_id";
 
-    if (argsHaving) {
+    if (argsHaving.length > 0) {
         queryString += " HAVING " + argsHaving.join(" AND ");
     }
 
