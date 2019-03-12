@@ -22,10 +22,6 @@ module.exports = function () {
     require('../app/routes/venues.routes')(app);
     require('../app/routes/users.routes')(app);
 
-    // DEBUG (you can remove this)
-    app.get('/', function (req, res) {
-        res.send({ 'message': 'Hello World!' })
-    });
 
     return app;
 };

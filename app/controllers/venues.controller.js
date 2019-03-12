@@ -66,26 +66,24 @@ exports.addNew = async function (req, res) {
         },
             (err) => {
                 if (err.message === 'No City') {
+                    console.log("ree");
                     res.statusMessage = 'Bad Request';
-                    res.status(404).send('No city provided');
-                }
-            },
-            (err) => {
-                if (err.message === 'Invalid Latitude') {
+                    res.status(400).send('No city provided');
+                } else if (err.message === 'Invalid Latitude') {
                     res.statusMessage = 'Bad Request';
-                    res.status(404).send('Invalid Latitude');
-                }
-            },
-            (err) => {
-                if (err.message === 'Invalid Longitude') {
+                    res.status(400).send('Invalid Latitude');
+                } else if (err.message === 'Invalid Longitude') {
                     res.statusMessage = 'Bad Request';
-                    res.status(404).send('Invalid Longitude');
+                    res.status(400).send('Invalid Longitude');
+                } else if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(400).send('Bad Request');
                 }
             }).catch(
             (error) => {
                 console.error(error);
-                res.statusMessage = 'Bad Request';
-                res.status(400).send('Bad Request');
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
             }
         );
 };
@@ -158,18 +156,21 @@ exports.updateDetails = async function (req, res) {
                 res.json("OK");
             },
             (err) => {
-                if (err.message === 'Unauthorized') {
-                    res.statusMessage = 'Unauthorized';
-                    res.status(404).send('Unauthorized');
+                if (err.message === 'Forbidden') {
+                    res.statusMessage = 'Forbidden';
+                    res.status(401).send('Forbidden');
                 } else if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Not Found');
+                } else if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(400).send('Bad Request');
                 }
             }).catch(
             (error) => {
                 console.error(error);
-                res.statusMessage = 'Bad Request';
-                res.status(400).send('Bad Request');
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
             }
         );
 };
@@ -210,7 +211,7 @@ exports.addPhoto = async function (req, res) {
 exports.getPhoto = async function (req, res) {
     await Venues.getOnePhoto(req.params.id, req.params.photoFileName)
         .then((photoRow) => {
-                res.statusMessage = 'OK';
+                res.statusMessage = 'OK';//TODO set content type
                 res.send(photoRow);
             },
             (err) => {
@@ -240,27 +241,36 @@ exports.setPrimaryPhoto = async function (req, res) {
 
 
 exports.getReview = async function (req, res) {
-    await Venues.getOneReview(req.params.id)
-        .then((reviewRow) => {
-            let toDisplay =
-                {
-                    "reviewAuthor" :
-                        {
-                            "userID" : reviewRow['review_author_id'],
-                            "username" : reviewRow['username']
-                        },
-                    "reviewBody" : reviewRow['review_body'],
-                    "starRating" : reviewRow['star_rating'],
-                    "costRating" : reviewRow['cost_rating'],
-                    "timePosted" : reviewRow['time_posted']
-                };
+    await Venues.getReviews(req.params.id)
+        .then((reviewRows) => {
+            //TODO don't show venue details if not logged in
+            let reviews = [];
+                if (reviewRows) {
+                    for (let i = 0; i < reviewRows.length; i++) {
+                        reviews.push(
+                            {
+                                "reviewAuthor" :
+                                    {
+                                        "userID" : reviewRows[i]['review_author_id'],
+                                        "username" : reviewRows[i]['username']
+                                    },
+                                "reviewBody" : reviewRows[i]['review_body'],
+                                "starRating" : reviewRows[i]['star_rating'],
+                                "costRating" : reviewRows[i]['cost_rating'],
+                                "timePosted" : reviewRows[i]['time_posted']
+                            }
+                        )
+                    }
+                }
+
+
             res.statusMessage = 'OK';
-            res.send(toDisplay);
+            res.send(reviews);
             },
             (err) => {
                 if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
-                    res.status(404).send('Review: ' + req.params.id + ' Not Found');
+                    res.status(404).send('Not Found');
                 }
             }
         ).catch(
@@ -274,26 +284,20 @@ exports.getReview = async function (req, res) {
 
 
 exports.addReview = async function (req, res) {
-    await Venues.saveReview(req.query.reviewBody, req.query.starRating, req.query.costRating, req.params.id)
+    await Venues.saveReview(req.body.reviewBody, req.body.starRating, req.body.costRating, req.params.id)
         .then(() => {
                 res.statusMessage = 'Created';
                 res.status(201);
-                res.send();
+                res.send('Review Created');
             },
             (err) => {
                 if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
                     res.status(404).send('Bad Request');
-                }
-            },
-            (err) => {
-                if (err.message === 'Unauthorized') {
+                } else if (err.message === 'Unauthorized') {
                     res.statusMessage = 'Unauthorized';
                     res.status(404).send('Unauthorized');
-                }
-            },
-            (err) => {
-                if (err.message === 'Forbidden') {
+                } else if (err.message === 'Forbidden') {
                     res.statusMessage = 'Forbidden';
                     res.status(404).send('Forbidden');
                 }

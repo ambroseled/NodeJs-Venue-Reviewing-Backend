@@ -49,17 +49,81 @@ exports.getAllCategories = async function () {
 };
 
 exports.updateVenue = async function (venueBody, id) {
-    let queryString = "UPDATE TABLE Venue SET venue_name = ?, category_id = ?, city = ?, short_description = ?," +
-        "long_description = ?, address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
+    let latitude = venueBody['latitude'];
+    let longitude = venueBody['longitude'];
+    let address = venueBody['address'];
+    let longDes = venueBody['longDescription'];
+    let shortDes = venueBody['shortDescription'];
+    let categoryId = venueBody['categoryId'];
+    let city = venueBody['city'];
+    let venueName = venueBody['venueName'];
 
-    let values = [venueBody['venueName'], venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
-        venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude'], id];
-    console.log(queryString);
-    console.log(values);
+
+
+
+
+    let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
+    let idCheck = "SELECT COUNT(*) FROM Venue WHERE venue_id = ?";
+    let categoryCheck = "SELECT COUNT(*) FROM VenueCategory WHERE category_id = ?";
+    let queryString = "";
+    let values = [];
+
+
+    if (longDes.length >= 1 && shortDes.length >= 1) {
+        console.log("nooy");
+        queryString = "UPDATE Venue SET venue_name = ?, category_id = ?, city = ?, short_description = ?," +
+            "long_description = ?, address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
+        values = [venueName, categoryId, city, shortDes, longDes, address, latitude, longitude, id];
+    } else if (longDes.length >= 1) {
+        queryString = "UPDATE Venue SET venue_name = ?, category_id = ?, city = ?, " +
+            "long_description = ?, address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
+        values = [venueName, categoryId, city, longDes, address, latitude, longitude, id];
+    } else {
+        queryString = "UPDATE Venue SET venue_name = ?, category_id = ?, city = ?, short_description = ?," +
+            " address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
+        values = [venueName, categoryId, city, shortDes, address, latitude, longitude, id];
+    }
+
+
+
+    if (latitude < -180 || latitude > 180) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+    if (longitude < -90 || longitude > 90) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+    if (address.length < 1) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+    if (city.length < 1) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+    if (venueName.length < 1) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+
+
     try {
 
+        let resultAdmin = await db.getPool().query(getAdminQuery, id);
+        if (true === false) { // TODO check against current user once done
+            return Promise.reject(new Error("Forbidden"));
+        }
+
+        //TODO Unauthorized
+
+        let categoryResult = await db.getPool().query(categoryCheck, categoryId);
+        if (categoryResult[0]['COUNT(*)'] === 0) {
+            return Promise.reject(new Error("Bad Request"));
+        }
+
+        let resultId = await db.getPool().query(idCheck, id);
+        if (resultId[0]['COUNT(*)'] === 0) {
+            return Promise.reject(new Error("Not Found"));
+        }
+        console.log(queryString, values);
         let result = await db.getPool().query(queryString, values);
-        console.log("beep");
+
         return Promise.resolve();
     } catch(err) {
         return Promise.reject(err);
@@ -89,30 +153,41 @@ exports.getVenue = async function (id) {
 };
 
 exports.addNewVenue = async function (venueBody) {
-    if (venueBody['city'] === '') {
-        return Promise.reject('No City');
+    if (venueBody['city'].length === 0) {
+        return Promise.reject(new Error('No City'));
     } else if (venueBody['latitude'] > 90.0) {
-        return Promise.reject('Invalid latitude');
+        return Promise.reject(new Error('Invalid latitude'));
     } else if (venueBody['longitude'] < -180.0) {
-        return Promise.reject('Invalid longitude');
+        return Promise.reject(new Error('Invalid longitude'));
     }
     let queryString = "INSERT INTO Venue (venue_name, admin_id, category_id, city, short_description, long_description, address, " +
         "latitude, longitude) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?)";
+    let categoryCheck = "SELECT COUNT(*) FROM VenueCategory WHERE category_id = ?";
 
     let values = [venueBody['venueName'], 1, venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
     venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude']];
 
     try {
-        let result = await db.getPool().query(queryString, values);
-        return Promise.resolve(result);
+        let categoryResult = await db.getPool().query(categoryCheck, venueBody['categoryId']);
+        if (categoryResult[0]['COUNT(*)'] === 0) {
+            return Promise.reject(new Error("Bad Request"));
+        } else {
+            let result = await db.getPool().query(queryString, values);
+            return Promise.resolve(result);
+        }
+
     } catch(err) {
         return Promise.reject(err);
     }
 };
 
 exports.getAllVenues = async function (startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy, reverseSort, myLatitude, myLongitude) {
-    if (minStarRating > 5 || minStarRating < 0) {
-        return Promise.reject("Bad Request");
+    if (minStarRating > 5 || minStarRating < 1) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+
+    if (maxCostRating > 4 || maxCostRating < 0) {
+        return Promise.reject(new Error("Bad Request"));
     }
 
     let argsWhere = [];
@@ -142,7 +217,11 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         if (sortBy === 'COST_RATING') {
             argsSort = ' ORDER BY mode_cost_rating';
         } else if (sortBy === 'DISTANCE') {
-        //TODO
+            if (!myLongitude || !myLatitude) {
+                return Promise.reject("Bad Request");
+            } else {
+                //TODO Calc distance and set sort
+            }
         }
     }
 
@@ -164,6 +243,18 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         queryString += ' ORDER BY AVG(star_rating)';
     }
 
+    if (reverseSort === 'true') {
+        queryString += ' DESC';
+    }
+
+    if (startIndex && count) {
+        queryString += ' LIMIT ' + count + ' OFFSET ' + startIndex; //TODO Investigate why this does work as a wild card
+    } else if (count) {
+        queryString += ' LIMIT ' + count;
+    } else if (startIndex) {
+        queryString += ' LIMIT 18446744073709551615 OFFSET ' + startIndex; // 18446744073709551615 is used as limit is required and this is the max value possible
+    }
+
     try {
         let venueRows = await db.getPool().query(queryString, argsValues.concat(havingValues));
         let photoRows = await db.getPool().query(primaryPhotoQuery);
@@ -175,17 +266,18 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
 };
 
 
-exports.getOneReview = async function (id) {
+exports.getReviews = async function (id) {
     let queryString = "Select review_author_id, username, review_body, star_rating, cost_rating, time_posted " +
-        "FROM Review JOIN User ON review_author_id = user_id WHERE reviewed_venue_id = ?";
+        "FROM Review JOIN User ON review_author_id = user_id WHERE reviewed_venue_id = ? " +
+        "ORDER BY time_posted DESC";
     try {
 
         let reviewRows = await db.getPool().query(queryString, id);
-        console.log('beans');
+
         if (reviewRows.length === 0) {
             return Promise.reject(new Error('Not Found'));
         }
-        return Promise.resolve(reviewRows[0]);
+        return Promise.resolve(reviewRows);
     } catch(err) {
         return Promise.reject(err);
     }
@@ -193,18 +285,40 @@ exports.getOneReview = async function (id) {
 
 
 exports.saveReview = async function (reviewBody, starRating, costRating, id) {
-    if (reviewBody === null || starRating === null || costRating === null || id === null) {
-        return Promise.reject("Bad Request");
+    if (reviewBody.length < 1) {
+        return Promise.reject(new Error("Bad Request"));
     }
+    if (starRating > 5 || starRating < 1) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+    if (costRating > 5 || costRating < 0) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+
 
     let author_id = 1; //TODO get logged in user
     let time_posted = (new Date()).getTime();
     let queryString = "INSERT INTO Review (reviewed_venue_id, review_author_id, review_body, star_rating, cost_rating, " +
         "time_posted) VALUES (?, ?, ?, ?, ?, ?)";
+    let queryAdmin = "SELECT admin_id FROM VENUE WHERE venue_id = ?";
+    let queryPreviousReview = "SELECT COUNT(*) FROM REVIEW WHERE reviewed_venue_id = ? AND review_author_id = ?";
 
     let values = [id, author_id, reviewBody, starRating, costRating, time_posted];
-    console.log("Noot");
+
     try {
+        let admin = await db.getPool().query(queryString, id);
+        if (author_id === admin[0]['admin_id']) { //TODO check against current user
+            return Promise.reject(new Error("Forbidden"));
+        }
+
+        /**
+        let previous = await db.getPool().query(queryString, [id, current_user]);
+        if (previous[0]['COUNT(*)'] > 0) { //TODO check against current user
+            return Promise.reject(new Error("Forbidden"));
+        }*/
+
+        //TODO Unauthorized
+
         let result = await db.getPool().query(queryString, values);
         return Promise.resolve(result);
     } catch(err) {
