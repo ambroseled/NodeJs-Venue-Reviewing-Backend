@@ -24,7 +24,7 @@ exports.viewAll = async function (req, res) {
                     for (let i = 0; i < venueRows.length; i++) {
                         venues.push(
                             {
-                                "venueID" : venueRows[i]['venue_id'],
+                                "venueId" : venueRows[i]['venue_id'],
                                 "venueName" : venueRows[i]['venue_name'],
                                 "categoryId" : venueRows[i]['category_id'],
                                 "city" : venueRows[i]['city'],
@@ -67,7 +67,6 @@ exports.addNew = async function (req, res) {
         },
             (err) => {
                 if (err.message === 'No City') {
-                    console.log("ree");
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('No city provided');
                 } else if (err.message === 'Invalid Latitude') {
