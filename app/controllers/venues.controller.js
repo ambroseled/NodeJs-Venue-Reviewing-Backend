@@ -21,6 +21,7 @@ exports.viewAll = async function (req, res) {
                 let photoRows = rows[1];
                 let  venues =[];
                 if (venueRows) {
+                    //TODO only show distance if lat and long are given
                     for (let i = 0; i < venueRows.length; i++) {
                         venues.push(
                             {
