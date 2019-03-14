@@ -1,6 +1,7 @@
 const db = require("../../config/db");
 const passwords = require('../../config/passwords');
 
+const cryptoJs = require("crypto");
 const emailValidator = require("email-validator");
 const jwt = require("jsonwebtoken");
 
@@ -110,16 +111,16 @@ exports.login = async function (username, email, password) {
     }
 
 
+    let token = cryptoJs.randomBytes(32).toString('hex');
+
     try {
         let result = await db.getPool().query(queryString, values);
-
-        console.log(getToken(result[0]['user_id'], email));
-
-        await db.getPool().query("UPDATE User SET auth_token = ? WHERE user_id = ?", [getToken(result[0]['user_id'], email), result[0]]['user_id']);
 
         if (result.length === 0) {
             return Promise.reject(new Error('Bad Request'));
         }
+
+        await db.getPool().query("UPDATE User SET auth_token = ? WHERE user_id = ?", [token, result[0]]['user_id']);
 
         if (await passwords.compare(result[0]['password'], password)) {
             return Promise.resolve(result);

@@ -1,6 +1,7 @@
 const db = require("../../config/db");
 
 
+
 exports.makePhotoPrimary = async function (id) {
     Promise.reject("Noot");
 };
@@ -70,7 +71,6 @@ exports.updateVenue = async function (venueBody, id) {
 
 
     if (longDes.length >= 1 && shortDes.length >= 1) {
-        console.log("nooy");
         queryString = "UPDATE Venue SET venue_name = ?, category_id = ?, city = ?, short_description = ?," +
             "long_description = ?, address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
         values = [venueName, categoryId, city, shortDes, longDes, address, latitude, longitude, id];

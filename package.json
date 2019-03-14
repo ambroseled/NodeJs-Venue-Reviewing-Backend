@@ -13,6 +13,7 @@
     "promise-mysql": "^3.3.1",
     "bcrypt": "3.0.4",
     "email-validator": "2.0.4",
-    "jsonwebtoken": "^8.5.0"
+    "jsonwebtoken": "^8.5.0",
+    "crypto": "^1.0.1"
   }
 }
