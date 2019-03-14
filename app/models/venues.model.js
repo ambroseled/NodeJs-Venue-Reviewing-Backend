@@ -288,7 +288,8 @@ exports.getReviews = async function (id) {
 
 
 exports.saveReview = async function (reviewBody, starRating, costRating, id) {
-    if (reviewBody === null || starRating === null || costRating === null || !(starRating % 1) !== 0 || !(costRating % 1) !== 0){
+    console.log((starRating % 1) !== 0);
+    if (reviewBody === null || starRating === null || costRating === null || (starRating % 1) !== 0 || (costRating % 1) !== 0){
         return Promise.reject(new Error("Bad Request"));
     }
     if (reviewBody.length < 1) {
@@ -313,14 +314,12 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
     let values = [id, author_id, reviewBody, starRating, costRating, time_posted];
 
     try {
-        console.log(id);
         /**
-        let admin = await db.getPool().query(queryAdmin, id);
+        let admin = await db.getPool().query(queryAdmin, );
 
         if (author_id !== admin[0]['admin_id']) { //TODO check against current user
             return Promise.reject(new Error("Forbidden"));
         }*/
-        console.log("noot");
 
         /**
         let previous = await db.getPool().query(queryString, [id, current_user]);
