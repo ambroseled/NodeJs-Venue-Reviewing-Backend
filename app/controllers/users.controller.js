@@ -90,7 +90,7 @@ exports.register = async function(req, res) {
                 res.status(201).json(toDisplay);
             },
             (err) => {
-                if (err.message === 'Bad Request') {
+                if (err.message === 'Bad Request' || err.code === 'ER_DUP_ENTRY') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
                 }
