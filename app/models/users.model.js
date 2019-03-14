@@ -69,7 +69,7 @@ exports.addUser = async function (username, email, given_name, family_name, pass
 
     try {
 
-        let result = await db.getPool().query(queryString, [username, email, given_name, family_name, password]);
+        let result = await db.getPool().query(queryString, [username, email, given_name, family_name, await passwords.hash(password)]);
         console.log(result);
 
         return Promise.resolve(result);
