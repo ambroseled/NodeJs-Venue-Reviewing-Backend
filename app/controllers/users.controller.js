@@ -1,5 +1,12 @@
 const Users = require('../models/users.model');
 
+/**
+ * This method calls users.model.getOneUser to get the data for a given user profile,
+ * the user data is then sent in teh response
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.getUser = async function (req, res) {
     await Users.getOneUser(req.params.id)
         .then((userRow) => {
@@ -30,6 +37,13 @@ exports.getUser = async function (req, res) {
         );
 };
 
+/**
+ * This method calls users.model.getAllReviews to get data about all reviews related to
+ * a certain user
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.getReviews = async function (req, res) {
     await Users.getAllReviews(req.params.id)
         .then((reviewRows) => {
@@ -79,6 +93,12 @@ exports.getReviews = async function (req, res) {
         );
 };
 
+/**
+ * This method calls users.model.addUser to add passed user data to the database
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.register = async function(req, res) {
     await Users.addUser(req.body.username, req.body.email, req.body.givenName, req.body.familyName, req.body.password)
         .then((result) => {
@@ -110,6 +130,12 @@ exports.updateDetails = async function(req, res) {
     res.status(500).send('Internal Server Error');
 };
 
+/**
+ * This method calls users.model.getOnePhoto to get the primary photo of a user
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.getPhoto = async function(req, res) {
     await Users.getOnePhoto(req.params.id, req.params.photoFileName)
         .then((photoRow) => {
@@ -149,6 +175,13 @@ exports.logout = async function(req, res) {
     res.status(500).send('Internal Server Error');
 };
 
+/**
+ * This method calls users.model.login to attempt to login into the application using
+ * the passed credentials
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.login = async function(req, res) {
     await Users.login(req.body.username, req.body.email, req.body.password)
         .then((result) => {
