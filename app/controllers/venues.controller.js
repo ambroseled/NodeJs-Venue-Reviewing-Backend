@@ -21,10 +21,11 @@ exports.viewAll = async function (req, res) {
                 let photoRows = rows[1];
                 let  venues =[];
                 if (venueRows) {
+                    //TODO only show distance if lat and long are given
                     for (let i = 0; i < venueRows.length; i++) {
                         venues.push(
                             {
-                                "venueID" : venueRows[i]['venue_id'],
+                                "venueId" : venueRows[i]['venue_id'],
                                 "venueName" : venueRows[i]['venue_name'],
                                 "categoryId" : venueRows[i]['category_id'],
                                 "city" : venueRows[i]['city'],
@@ -41,6 +42,7 @@ exports.viewAll = async function (req, res) {
                 }
 
                 res.statusMessage = 'OK';
+                res.status(200);
                 res.json(venues);
             }
         ).catch(
@@ -66,7 +68,6 @@ exports.addNew = async function (req, res) {
         },
             (err) => {
                 if (err.message === 'No City') {
-                    console.log("ree");
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('No city provided');
                 } else if (err.message === 'Invalid Latitude') {
@@ -128,6 +129,7 @@ exports.getOne = async function (req, res) {
             };
 
             res.statusMessage = 'OK';
+            res.status(200);
             res.json(toDisplay);
         },
             (err) => {
@@ -150,10 +152,13 @@ exports.updateDetails = async function (req, res) {
     let venueBody = req.body;
     let id = req.params.id;
 
+    //TODO return 400 when no changes given
+
     await Venues.updateVenue(venueBody, id)
         .then((result) => {
                 res.statusMessage = 'OK';
-                res.json("OK");
+                res.status(200);
+                res.send("Venue updated");
             },
             (err) => {
                 if (err.message === 'Forbidden') {
@@ -192,6 +197,7 @@ exports.getCategories = async function (req, res) {
                 }
 
                 res.statusMessage = 'OK';
+                res.status(200);
                 res.json(categories);
             }
         ).catch(
@@ -212,6 +218,7 @@ exports.getPhoto = async function (req, res) {
     await Venues.getOnePhoto(req.params.id, req.params.photoFileName)
         .then((photoRow) => {
                 res.statusMessage = 'OK';//TODO set content type
+                res.status(200);
                 res.send(photoRow);
             },
             (err) => {
@@ -265,6 +272,7 @@ exports.getReview = async function (req, res) {
 
 
             res.statusMessage = 'OK';
+            res.status(200);
             res.send(reviews);
             },
             (err) => {

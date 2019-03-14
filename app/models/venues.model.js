@@ -153,12 +153,15 @@ exports.getVenue = async function (id) {
 };
 
 exports.addNewVenue = async function (venueBody) {
-    if (venueBody['city'].length === 0) {
+    if (venueBody['city'] === null) {
+        return Promise.reject(new Error('No City'));
+    } else if (venueBody['city'].length === 0) {
+        console.log("beans");
         return Promise.reject(new Error('No City'));
     } else if (venueBody['latitude'] > 90.0) {
-        return Promise.reject(new Error('Invalid latitude'));
+        return Promise.reject(new Error('Invalid Latitude'));
     } else if (venueBody['longitude'] < -180.0) {
-        return Promise.reject(new Error('Invalid longitude'));
+        return Promise.reject(new Error('Invalid Longitude'));
     }
     let queryString = "INSERT INTO Venue (venue_name, admin_id, category_id, city, short_description, long_description, address, " +
         "latitude, longitude) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?)";
@@ -298,6 +301,7 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
 
     let author_id = 1; //TODO get logged in user
     let time_posted = (new Date()).getTime();
+    console.log(time_posted);
     let queryString = "INSERT INTO Review (reviewed_venue_id, review_author_id, review_body, star_rating, cost_rating, " +
         "time_posted) VALUES (?, ?, ?, ?, ?, ?)";
     let queryAdmin = "SELECT admin_id FROM VENUE WHERE venue_id = ?";

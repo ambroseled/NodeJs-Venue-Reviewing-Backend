@@ -4,7 +4,7 @@ exports.getUser = async function (req, res) {
     await Users.getOneUser(req.params.id)
         .then((userRow) => {
                 // Below blocked used when not authenticated
-            //TODO different result when authenticated
+            //TODO show email when authenticated and getting own user
                 let toDisplay =
                     {
                         "username" : userRow['username'],
