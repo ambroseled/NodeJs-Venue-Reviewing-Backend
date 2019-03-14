@@ -92,7 +92,7 @@ exports.register = async function(req, res) {
             (err) => {
                 if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
-                    res.status(404).send('Bad Request');
+                    res.status(400).send('Bad Request');
                 }
             }
         ).catch(
