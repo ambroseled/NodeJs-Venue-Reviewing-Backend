@@ -86,8 +86,8 @@ exports.register = async function(req, res) {
                     "userId": result['insertId']
                 };
 
-                res.statusMessage = 'OK';
-                res.json(toDisplay);
+                res.statusMessage = 'Created';
+                res.status(201).json(toDisplay);
             },
             (err) => {
                 if (err.message === 'Bad Request') {
