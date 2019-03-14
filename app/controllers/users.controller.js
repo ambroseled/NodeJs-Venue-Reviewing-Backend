@@ -88,6 +88,12 @@ exports.register = async function(req, res) {
 
                 res.statusMessage = 'OK';
                 res.json(toDisplay);
+            },
+            (err) => {
+                if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(404).send('Bad Request');
+                }
             }
         ).catch(
             (error) => {

@@ -51,6 +51,16 @@ exports.getOnePhoto = async function (id, filename) {
 
 exports.addUser = async function (username, email, given_name, family_name, password) {
 
+    if (password === null) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+    if (password.length === 0) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+
+    if (!(email.match('/\\S+@\\S+\\.\\S+/'))) {
+        return Promise.reject(new Error("Bad Request"));
+    }
     //TODO auth token
     let queryString = "INSERT INTO User (username, email, given_name, family_name, password) VALUES (?, ?, ?, ?, ?)";
 
