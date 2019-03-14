@@ -153,6 +153,7 @@ exports.getVenue = async function (id) {
 };
 
 exports.addNewVenue = async function (venueBody) {
+
     if (!venueBody['city']) {
         return Promise.reject(new Error('No City'));
     } else if (venueBody['city'].length === 0) {
@@ -163,9 +164,9 @@ exports.addNewVenue = async function (venueBody) {
         return Promise.reject(new Error('Invalid Longitude'));
     }
     let queryString = "INSERT INTO Venue (venue_name, admin_id, category_id, city, short_description, long_description, address, " +
-        "latitude, longitude) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?)";
+        "latitude, longitude, date_added) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?, NOW())";
     let categoryCheck = "SELECT COUNT(*) FROM VenueCategory WHERE category_id = ?";
-
+    console.log("noot");
     let values = [venueBody['venueName'], 1, venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
     venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude']];
 
@@ -312,11 +313,11 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
     let time_posted = new Date();
 
     let queryString = "INSERT INTO Review (reviewed_venue_id, review_author_id, review_body, star_rating, cost_rating, " +
-        "time_posted) VALUES (?, ?, ?, ?, ?, ?)";
+        "time_posted) VALUES (?, ?, ?, ?, ?, NOW())";
     let queryAdmin = "SELECT admin_id FROM VENUE WHERE venue_id = ?";
     let queryPreviousReview = "SELECT COUNT(*) FROM REVIEW WHERE reviewed_venue_id = ? AND review_author_id = ?";
 
-    let values = [id, author_id, reviewBody, starRating, costRating, time_posted];
+    let values = [id, author_id, reviewBody, starRating, costRating];
 
 
     try {
@@ -338,8 +339,10 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
 
 
         let result = await db.getPool().query(queryString, values);
+
         return Promise.resolve(result);
     } catch(err) {
+        console.log(err);
         return Promise.reject(err);
     }
 };
