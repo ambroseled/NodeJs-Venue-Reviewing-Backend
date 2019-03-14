@@ -150,7 +150,6 @@ exports.logout = async function(req, res) {
 };
 
 exports.login = async function(req, res) {
-    console.log("beans");
     await Users.login(req.body.username, req.body.email, req.body.password)
         .then((result) => {
                 let toDisplay = {

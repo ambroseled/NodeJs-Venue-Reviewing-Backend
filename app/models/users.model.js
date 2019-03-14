@@ -1,4 +1,7 @@
 const db = require("../../config/db");
+const passwords = require('../../config/passwords');
+
+const emailValidator = require("email-validator");
 
 exports.getOneUser = async function (id) {
     let queryString = "Select username, email, given_name, family_name FROM User WHERE user_id = ?";
@@ -58,7 +61,7 @@ exports.addUser = async function (username, email, given_name, family_name, pass
         return Promise.reject(new Error("Bad Request"));
     }
 
-    if (!(email.match('/\\S+@\\S+\\.\\S+/'))) {
+    if (!emailValidator.validate(email)) {
         return Promise.reject(new Error("Bad Request"));
     }
     //TODO auth token
@@ -81,11 +84,12 @@ exports.patchUser = async function (reviewBody, starRating, costRating, id) {
 
 exports.login = async function (username, email, password) {
 
-    let queryString = "SELECT user_id, auth_token FROM User WHERE username = ? AND email = ? AND password = ?";
+    let queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ? AND email = ? AND password = ?";
 
     try {
 
-        let result = await db.getPool().query(queryString, [username, email, password]);
+
+        let result = await db.getPool().query(queryString, [username, email, await passwords.hash(password)]);
         console.log(result);
 
         if (result.length === 0) {
