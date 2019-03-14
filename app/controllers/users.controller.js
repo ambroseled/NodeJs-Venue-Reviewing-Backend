@@ -98,8 +98,8 @@ exports.register = async function(req, res) {
         ).catch(
             (error) => {
                 console.error(error);
-                res.statusMessage = 'Bad Request';
-                res.status(400).send('Bad Request');
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
             }
         );
 };

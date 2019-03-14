@@ -247,6 +247,8 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
     }
 
     if (reverseSort === 'true') {
+        queryString += ' ASC';
+    } else {
         queryString += ' DESC';
     }
 
