@@ -153,8 +153,8 @@ exports.login = async function(req, res) {
     await Users.login(req.body.username, req.body.email, req.body.password)
         .then((result) => {
                 let toDisplay = {
-                    "userId": result[0]['user_id'],
-                    "token": result[0]['auth_token']
+                    "userId": result[0][0]['user_id'],
+                    "token": result[1]
                 };
 
                 res.statusMessage = 'OK';
