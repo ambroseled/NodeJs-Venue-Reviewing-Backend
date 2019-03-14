@@ -84,18 +84,22 @@ exports.patchUser = async function (reviewBody, starRating, costRating, id) {
 
 exports.login = async function (username, email, password) {
 
-    let queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ? AND email = ? AND password = ?";
+
+    let queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ? AND email = ?";
 
     try {
-
-
-        let result = await db.getPool().query(queryString, [username, email, await passwords.hash(password)]);
-        console.log(result);
+        let result = await db.getPool().query(queryString, [username, email]);
 
         if (result.length === 0) {
             return Promise.reject(new Error('Bad Request'));
         }
-        return Promise.resolve(result);
+
+        if (await passwords.compare(result[0]['password'], password)) {
+            return Promise.resolve(result);
+        } else {
+            return Promise.reject(new Error('Bad Request'));
+        }
+
     } catch(err) {
         return Promise.reject(err);
     }

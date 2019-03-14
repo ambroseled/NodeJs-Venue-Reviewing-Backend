@@ -7,5 +7,5 @@ exports.hash = async function (password) {
 };
 
 exports.compare = async function (storedHash, toCompare) {
-
+    return await bcrypt.compare(toCompare, storedHash);
 };
