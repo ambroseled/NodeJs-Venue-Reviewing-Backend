@@ -306,10 +306,14 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
     let values = [id, author_id, reviewBody, starRating, costRating, time_posted];
 
     try {
-        let admin = await db.getPool().query(queryString, id);
-        if (author_id === admin[0]['admin_id']) { //TODO check against current user
+        console.log(id);
+        /**
+        let admin = await db.getPool().query(queryAdmin, id);
+
+        if (author_id !== admin[0]['admin_id']) { //TODO check against current user
             return Promise.reject(new Error("Forbidden"));
-        }
+        }*/
+        console.log("noot");
 
         /**
         let previous = await db.getPool().query(queryString, [id, current_user]);
