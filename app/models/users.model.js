@@ -54,7 +54,7 @@ exports.getOnePhoto = async function (id, filename) {
 
 exports.addUser = async function (username, email, given_name, family_name, password) {
 
-    if (password === null) {
+    if (!password || !username || !email || !given_name || !family_name) {
         return Promise.reject(new Error("Bad Request"));
     }
     if (password.length === 0) {
