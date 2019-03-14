@@ -57,12 +57,13 @@ exports.viewAll = async function (req, res) {
 
 exports.addNew = async function (req, res) {
     let venueBody = req.body;
+    console.log(venueBody.city);
     await Venues.addNewVenue(venueBody)
         .then((result) => {
             let toDisplay = {
                 "venueId" : result['insertId']
             };
-            res.statusMessage = 'CREATED';
+            res.statusMessage = 'Created';
             res.status(201);
             res.json(toDisplay);
         },

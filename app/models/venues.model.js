@@ -153,10 +153,9 @@ exports.getVenue = async function (id) {
 };
 
 exports.addNewVenue = async function (venueBody) {
-    if (venueBody['city'] === null) {
+    if (!venueBody['city']) {
         return Promise.reject(new Error('No City'));
     } else if (venueBody['city'].length === 0) {
-        console.log("beans");
         return Promise.reject(new Error('No City'));
     } else if (venueBody['latitude'] > 90.0) {
         return Promise.reject(new Error('Invalid Latitude'));
@@ -279,6 +278,8 @@ exports.getReviews = async function (id) {
 
         let reviewRows = await db.getPool().query(queryString, id);
 
+        console.log(reviewRows);
+
         if (reviewRows.length === 0) {
             return Promise.reject(new Error('Not Found'));
         }
@@ -291,7 +292,8 @@ exports.getReviews = async function (id) {
 
 exports.saveReview = async function (reviewBody, starRating, costRating, id) {
 
-    if (reviewBody === null || starRating === null || costRating === null || (starRating % 1) !== 0 || (costRating % 1) !== 0){
+
+    if (!reviewBody|| !starRating || !costRating || (starRating % 1) !== 0 || (costRating % 1) !== 0){
         return Promise.reject(new Error("Bad Request"));
     }
     if (reviewBody.length < 1) {
@@ -305,15 +307,17 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
     }
 
 
+
     let author_id = 1; //TODO get logged in user
     let time_posted = new Date();
-    console.log(reviewBody);
+
     let queryString = "INSERT INTO Review (reviewed_venue_id, review_author_id, review_body, star_rating, cost_rating, " +
         "time_posted) VALUES (?, ?, ?, ?, ?, ?)";
     let queryAdmin = "SELECT admin_id FROM VENUE WHERE venue_id = ?";
     let queryPreviousReview = "SELECT COUNT(*) FROM REVIEW WHERE reviewed_venue_id = ? AND review_author_id = ?";
 
     let values = [id, author_id, reviewBody, starRating, costRating, time_posted];
+
 
     try {
         /**
@@ -330,6 +334,8 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
         }*/
 
         //TODO Unauthorized
+
+
 
         let result = await db.getPool().query(queryString, values);
         return Promise.resolve(result);
