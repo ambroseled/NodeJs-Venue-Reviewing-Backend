@@ -80,9 +80,22 @@ exports.getReviews = async function (req, res) {
 };
 
 exports.register = async function(req, res) {
-    //TODO
-    res.statusMessage = 'Internal Server Error';
-    res.status(500).send('Internal Server Error');
+    await Users.addUser(req.body.username, req.body.email, req.body.givenName, req.body.familyName, req.body.password)
+        .then((result) => {
+                let toDisplay = {
+                    "userId": result['insertId']
+                };
+
+                res.statusMessage = 'OK';
+                res.json(toDisplay);
+            }
+        ).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Bad Request';
+                res.status(400).send('Bad Request');
+            }
+        );
 };
 
 exports.updateDetails = async function(req, res) {
@@ -131,7 +144,22 @@ exports.logout = async function(req, res) {
 };
 
 exports.login = async function(req, res) {
-    //TODO
-    res.statusMessage = 'Internal Server Error';
-    res.status(500).send('Internal Server Error');
+    console.log("beans");
+    await Users.login(req.body.username, req.body.email, req.body.password)
+        .then((result) => {
+                let toDisplay = {
+                    "userId": result[0]['user_id'],
+                    "token": result[0]['auth_token']
+                };
+
+                res.statusMessage = 'OK';
+                res.json(toDisplay);
+            }
+        ).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Bad Request';
+                res.status(400).send('Bad Request');
+            }
+        );
 };

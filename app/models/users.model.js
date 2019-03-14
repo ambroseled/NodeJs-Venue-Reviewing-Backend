@@ -49,10 +49,43 @@ exports.getOnePhoto = async function (id, filename) {
 };
 
 
-exports.addUser = async function (reviewBody, starRating, costRating, id) {
-    return Promise.reject(new Error("Noot"));
+exports.addUser = async function (username, email, given_name, family_name, password) {
+
+    //TODO auth token
+    let queryString = "INSERT INTO User (username, email, given_name, family_name, password) VALUES (?, ?, ?, ?, ?)";
+
+    try {
+
+        let result = await db.getPool().query(queryString, [username, email, given_name, family_name, password]);
+        console.log(result);
+
+        return Promise.resolve(result);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 exports.patchUser = async function (reviewBody, starRating, costRating, id) {
     return Promise.reject(new Error("Noot"));
 };
+
+exports.login = async function (username, email, password) {
+
+    let queryString = "SELECT user_id, auth_token FROM User WHERE username = ? AND email = ? AND password = ?";
+
+    try {
+
+        let result = await db.getPool().query(queryString, [username, email, password]);
+        console.log(result);
+
+        if (result.length === 0) {
+            return Promise.reject(new Error('Bad Request'));
+        }
+        return Promise.resolve(result);
+    } catch(err) {
+        return Promise.reject(err);
+    }
+};
+
+
+

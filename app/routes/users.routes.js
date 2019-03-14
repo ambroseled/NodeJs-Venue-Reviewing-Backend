@@ -17,9 +17,9 @@ module.exports = function (app) {
         .delete(users.removePhoto);
 
     app.route(app.rootUrl + '/users/login')
-        .get(users.logout);
+        .post(users.login);
 
     app.route(app.rootUrl + '/users/logout')
-        .get(users.login);
+        .post(users.logout);
 
 };
