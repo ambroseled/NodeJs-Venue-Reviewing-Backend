@@ -81,10 +81,14 @@ exports.getReviews = async function (req, res) {
 
 exports.register = async function(req, res) {
     //TODO
+    res.statusMessage = 'Internal Server Error';
+    res.status(500).send('Internal Server Error');
 };
 
 exports.updateDetails = async function(req, res) {
     //TODO
+    res.statusMessage = 'Internal Server Error';
+    res.status(500).send('Internal Server Error');
 };
 
 exports.getPhoto = async function(req, res) {
@@ -110,16 +114,24 @@ exports.getPhoto = async function(req, res) {
 
 exports.setPhoto = async function(req, res) {
     //TODO
+    res.statusMessage = 'Internal Server Error';
+    res.status(500).send('Internal Server Error');
 };
 
 exports.removePhoto = async function(req, res) {
     //TODO
+    res.statusMessage = 'Internal Server Error';
+    res.status(500).send('Internal Server Error');
 };
 
 exports.logout = async function(req, res) {
     //TODO
+    res.statusMessage = 'Internal Server Error';
+    res.status(500).send('Internal Server Error');
 };
 
 exports.login = async function(req, res) {
     //TODO
+    res.statusMessage = 'Internal Server Error';
+    res.status(500).send('Internal Server Error');
 };

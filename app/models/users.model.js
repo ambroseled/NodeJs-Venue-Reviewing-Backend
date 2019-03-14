@@ -47,3 +47,12 @@ exports.getOnePhoto = async function (id, filename) {
     }*/
     Promise.reject("Noot");
 };
+
+
+exports.addUser = async function (reviewBody, starRating, costRating, id) {
+    return Promise.reject(new Error("Noot"));
+};
+
+exports.patchUser = async function (reviewBody, starRating, costRating, id) {
+    return Promise.reject(new Error("Noot"));
+};
