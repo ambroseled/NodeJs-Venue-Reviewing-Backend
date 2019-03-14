@@ -288,7 +288,7 @@ exports.getReviews = async function (id) {
 
 
 exports.saveReview = async function (reviewBody, starRating, costRating, id) {
-    if (reviewBody === null || starRating === null || costRating === null) {
+    if (reviewBody === null || starRating === null || costRating === null || !(starRating % 1) !== 0 || !(costRating % 1) !== 0){
         return Promise.reject(new Error("Bad Request"));
     }
     if (reviewBody.length < 1) {
