@@ -301,13 +301,13 @@ exports.addReview = async function (req, res) {
             (err) => {
                 if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
-                    res.status(404).send('Bad Request');
+                    res.status(400).send('Bad Request');
                 } else if (err.message === 'Unauthorized') {
                     res.statusMessage = 'Unauthorized';
-                    res.status(404).send('Unauthorized');
+                    res.status(401).send('Unauthorized');
                 } else if (err.message === 'Forbidden') {
                     res.statusMessage = 'Forbidden';
-                    res.status(404).send('Forbidden');
+                    res.status(403).send('Forbidden');
                 }
             }
         ).catch(
