@@ -292,11 +292,12 @@ exports.getReview = async function (req, res) {
 
 
 exports.addReview = async function (req, res) {
+    console.log(req.body.reviewBody);
     await Venues.saveReview(req.body.reviewBody, req.body.starRating, req.body.costRating, req.params.id)
         .then(() => {
                 res.statusMessage = 'Created';
                 res.status(201);
-                res.send('Review Created');
+                res.send('Created');
             },
             (err) => {
                 if (err.message === 'Bad Request') {

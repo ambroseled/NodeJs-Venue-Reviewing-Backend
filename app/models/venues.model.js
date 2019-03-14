@@ -288,7 +288,7 @@ exports.getReviews = async function (id) {
 
 
 exports.saveReview = async function (reviewBody, starRating, costRating, id) {
-    console.log((starRating % 1) !== 0);
+
     if (reviewBody === null || starRating === null || costRating === null || (starRating % 1) !== 0 || (costRating % 1) !== 0){
         return Promise.reject(new Error("Bad Request"));
     }
@@ -304,8 +304,8 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
 
 
     let author_id = 1; //TODO get logged in user
-    let time_posted = (new Date()).getTime();
-    console.log(time_posted);
+    let time_posted = new Date();
+    console.log(reviewBody);
     let queryString = "INSERT INTO Review (reviewed_venue_id, review_author_id, review_body, star_rating, cost_rating, " +
         "time_posted) VALUES (?, ?, ?, ?, ?, ?)";
     let queryAdmin = "SELECT admin_id FROM VENUE WHERE venue_id = ?";
