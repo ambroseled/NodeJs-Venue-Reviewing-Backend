@@ -83,12 +83,22 @@ exports.patchUser = async function (reviewBody, starRating, costRating, id) {
 };
 
 exports.login = async function (username, email, password) {
+    let queryString;
+    let values = [];
+    if (!username) {
+        queryString = "SELECT user_id, auth_token, password FROM User WHERE email = ?";
+        values = [email];
+    } else if (!email) {
+        queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ?";
+        values = [username];
+    } else {
+        queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ? AND email = ?";
+        values = [username, email];
+    }
 
-
-    let queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ? AND email = ?";
 
     try {
-        let result = await db.getPool().query(queryString, [username, email]);
+        let result = await db.getPool().query(queryString, values);
 
         if (result.length === 0) {
             return Promise.reject(new Error('Bad Request'));
