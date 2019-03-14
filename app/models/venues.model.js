@@ -15,7 +15,7 @@ exports.removePhoto = async function (id) {
  * @param filename the filename of the photo
  * @returns {Promise<*|undefined>}
  */
-exports.getOnePhoto = async function (id, filename) {
+exports.getOnePhoto = async function (id, filename, description, makePrimary) {
     let queryString = "Select photo_description FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
     try {
         let photoRows = await db.getPool().query(queryString, [id, filename]);

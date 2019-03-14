@@ -216,9 +216,12 @@ exports.addPhoto = async function (req, res) {
 
 
 exports.getPhoto = async function (req, res) {
-    await Venues.getOnePhoto(req.params.id, req.params.photoFileName)
+    let contentType = req.get("content-type");
+
+    await Venues.getOnePhoto(req.params.id, req.body.photo, req.body.description, req.body.makePrimary)
         .then((photoRow) => {
                 res.statusMessage = 'OK';//TODO set content type
+                res.contentType(contentType);
                 res.status(200);
                 res.send(photoRow);
             },

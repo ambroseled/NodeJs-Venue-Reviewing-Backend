@@ -2,6 +2,7 @@ const db = require("../../config/db");
 const passwords = require('../../config/passwords');
 
 const emailValidator = require("email-validator");
+const jwt = require("jsonwebtoken");
 
 exports.getOneUser = async function (id) {
     let queryString = "Select username, email, given_name, family_name FROM User WHERE user_id = ?";
@@ -82,23 +83,39 @@ exports.patchUser = async function (reviewBody, starRating, costRating, id) {
     return Promise.reject(new Error("Noot"));
 };
 
+function getToken(userId, userEmail) {
+    const today = new Date();
+    let expDate = new Date(today);
+    expDate.setDate(today.getDate() + 60);
+
+    return jwt.sign({
+       email: userEmail,
+        id: userId,
+        exp: parseInt(expDate.getTime() / 1000, 10),
+    }, 'secret');
+}
+
 exports.login = async function (username, email, password) {
     let queryString;
     let values = [];
     if (!username) {
-        queryString = "SELECT user_id, auth_token, password FROM User WHERE email = ?";
+        queryString = "SELECT user_id, password FROM User WHERE email = ?";
         values = [email];
     } else if (!email) {
-        queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ?";
+        queryString = "SELECT user_id, password FROM User WHERE username = ?";
         values = [username];
     } else {
-        queryString = "SELECT user_id, auth_token, password FROM User WHERE username = ? AND email = ?";
+        queryString = "SELECT user_id, password FROM User WHERE username = ? AND email = ?";
         values = [username, email];
     }
 
 
     try {
         let result = await db.getPool().query(queryString, values);
+
+        console.log(getToken(result[0]['user_id'], email));
+
+        await db.getPool().query("UPDATE User SET auth_token = ? WHERE user_id = ?", [getToken(result[0]['user_id'], email), result[0]]['user_id']);
 
         if (result.length === 0) {
             return Promise.reject(new Error('Bad Request'));
