@@ -5,7 +5,16 @@ const emailValidator = require("email-validator");
 const UIDGenerator = require('uid-generator');
 const uidgen = new UIDGenerator();
 
-exports.getOneUser = async function (id) {
+
+async function checkAuth(token, id) {
+    //TODO this is average
+    let queryString = "SELECT auth_token FROM User WHERE user_id = ?";
+    let userRow = await db.getPool().query(queryString, id);
+    return token === userRow[0]['auth_token'];
+}
+
+
+exports.getOneUser = async function (id, token) {
     let queryString = "Select username, email, given_name, family_name FROM User WHERE user_id = ?";
     try {
         let userRows = await db.getPool().query(queryString, id);
@@ -13,7 +22,7 @@ exports.getOneUser = async function (id) {
         if (userRows.length === 0) {
             return Promise.reject(new Error('Not Found'));
         }
-        return Promise.resolve(userRows[0]);
+        return Promise.resolve([userRows[0], await checkAuth(token, id)]);
     } catch(err) {
         return Promise.reject(err);
     }

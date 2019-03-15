@@ -1,5 +1,14 @@
 const Users = require('../models/users.model');
 
+
+async function checkAuth(token, id) {
+    let queryString = "SELECT auth_token FROM User WHERE user_id = ?";
+    let userRow = await db.getPool().query(queryString, id);
+    console.log(token);
+    console.log(userRow[0]['auth_token']);
+    return token === userRow[0]['auth_token'];
+}
+
 /**
  * This method calls users.model.getOneUser to get the data for a given user profile,
  * the user data is then sent in teh response
@@ -8,16 +17,26 @@ const Users = require('../models/users.model');
  * @returns {Promise<void>}
  */
 exports.getUser = async function (req, res) {
-    await Users.getOneUser(req.params.id)
-        .then((userRow) => {
-                // Below blocked used when not authenticated
-            //TODO show email when authenticated and getting own user
-                let toDisplay =
-                    {
-                        "username" : userRow['username'],
-                        "givenName" : userRow['given_name'],
-                        "familyName" : userRow['family_name']
-                };
+    await Users.getOneUser(req.params.id, req.headers['x-authorization'])
+        .then((result) => {
+            let toDisplay;
+                if (result[1]) {
+                    toDisplay =
+                        {
+                            "username" : result[0]['username'],
+                            "email" : result[0]['email'],
+                            "givenName" : result[0]['given_name'],
+                            "familyName" : result[0]['family_name']
+                        };
+                } else {
+                    toDisplay =
+                        {
+                            "username" : result[0]['username'],
+                            "givenName" : result[0]['given_name'],
+                            "familyName" : result[0]['family_name']
+                        };
+                }
+
 
                 res.statusMessage = 'OK';
                 res.json(toDisplay);
