@@ -139,7 +139,6 @@ exports.updateVenue = async function (venueBody, id, token) {
     if (categoryId === undefined) {
         categoryIdValid = false;
     } else {
-        //TODO query to see if category id is valid
         setArgs.push("category_id = ?");
         values.push(categoryId);
     }
@@ -174,8 +173,6 @@ exports.updateVenue = async function (venueBody, id, token) {
     let queryString = "Update Venue Set " + setArgs.join(", ") + " WHERE venue_id = ?";
     values.push(id);
 
-    console.log(queryString);
-    console.log(values);
 
     try {
 
@@ -239,12 +236,11 @@ exports.addNewVenue = async function (venueBody, token) {
     if (!venueBody['city'] || venueBody['longitude'] < -180.0 || venueBody['latitude'] > 90.0 || venueBody['city'].length === 0) {
         return Promise.reject(new Error('Bad Request'));
     }
-    console.log(new Date());
     let queryString = "INSERT INTO Venue (venue_name, admin_id, category_id, city, short_description, long_description, address, " +
-        "latitude, longitude, date_added) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?, CURDATE())";
+        "latitude, longitude, date_added) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?, ?)";
     let categoryCheck = "SELECT COUNT(*) FROM VenueCategory WHERE category_id = ?";
     let values = [venueBody['venueName'], 1, venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
-    venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude']];
+    venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude'], new Date()];
 
     try {
         let categoryResult = await db.getPool().query(categoryCheck, venueBody['categoryId']);
