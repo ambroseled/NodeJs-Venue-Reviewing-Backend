@@ -6,23 +6,37 @@ const UIDGenerator = require('uid-generator');
 const uidgen = new UIDGenerator();
 
 
-async function checkAuth(token, id) {
-    //TODO this is average
-    let queryString = "SELECT auth_token FROM User WHERE user_id = ?";
-    let userRow = await db.getPool().query(queryString, id);
-    return token === userRow[0]['auth_token'];
+async function getUser(token) {
+    if (!token) {
+        return null;
+    }
+    let queryString = "SELECT user_id FROM User WHERE auth_token = ?";
+    let userRow = await db.getPool().query(queryString, token);
+    if (userRow.length < 1) {
+        return null;
+    }
+    return userRow[0]['user_id'];
 }
 
 
 exports.getOneUser = async function (id, token) {
-    let queryString = "Select username, email, given_name, family_name FROM User WHERE user_id = ?";
+
+    let queryString = "Select username, email, given_name, family_name, user_id FROM User WHERE user_id = ?";
     try {
         let userRows = await db.getPool().query(queryString, id);
 
         if (userRows.length === 0) {
             return Promise.reject(new Error('Not Found'));
         }
-        return Promise.resolve([userRows[0], await checkAuth(token, id)]);
+
+        let user = await getUser(token);
+
+        if (user === userRows[0]['user_id']) {
+            return Promise.resolve([userRows[0], true]);
+        } else {
+            return Promise.resolve([userRows[0], false]);
+        }
+
     } catch(err) {
         return Promise.reject(err);
     }
@@ -81,7 +95,7 @@ exports.addUser = async function (username, email, given_name, family_name, pass
     try {
 
         let result = await db.getPool().query(queryString, [username, email, given_name, family_name, await passwords.hash(password)]);
-        console.log(result);
+
 
         return Promise.resolve(result);
     } catch(err) {
@@ -89,8 +103,79 @@ exports.addUser = async function (username, email, given_name, family_name, pass
     }
 };
 
-exports.patchUser = async function (reviewBody, starRating, costRating, id) {
-    return Promise.reject(new Error("Noot"));
+
+
+exports.patchUser = async function (givenName, familyName, password, token, id) {
+    let user = await getUser(token);
+
+    console.log("familyName", familyName.length);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+    if (user !== parseInt(id, 10)) {
+        return Promise.reject(new Error("Forbidden"));
+    }
+
+    let givenValid = givenName && givenName.length > 1;
+    let familyValid = familyName && familyName.length > 1;
+    let passValid = password && password.length > 1 && (typeof password) === "string";
+
+
+    if (!givenValid && !familyValid && !passValid ) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+
+
+    let setArgs = [];
+    let queryValues = [];
+
+    if (givenValid) {
+        setArgs.push("given_name = ?");
+        queryValues.push(givenName);
+    }
+    if (familyValid) {
+        setArgs.push("family_name = ?");
+        queryValues.push(familyName);
+    }
+    if (passValid) {
+        setArgs.push("password = ?");
+        queryValues.push(await passwords.hash(password));
+    }
+
+
+    let updateQuery = "UPDATE User SET " + setArgs.join(", ") + " WHERE user_id = ?";
+    queryValues.push(id);
+
+    try {
+
+        let result = await db.getPool().query(updateQuery, queryValues);
+        console.log(result);
+        return Promise.resolve(result);
+
+    } catch(err) {
+        return Promise.reject(err);
+    }
+};
+
+
+exports.logout = async function (token) {
+    let user = await getUser(token);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+
+    let updateQuery = "UPDATE User SET auth_token = null WHERE user_id = ?";
+    try {
+
+        let result = await db.getPool().query(updateQuery, user);
+        console.log(result);
+        return Promise.resolve(result);
+
+    } catch(err) {
+        return Promise.reject(err);
+    }
 };
 
 

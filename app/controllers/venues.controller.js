@@ -57,8 +57,8 @@ exports.viewAll = async function (req, res) {
 
 exports.addNew = async function (req, res) {
     let venueBody = req.body;
-    console.log(venueBody.city);
-    await Venues.addNewVenue(venueBody)
+
+    await Venues.addNewVenue(venueBody, req.headers['x-authorization'])
         .then((result) => {
             let toDisplay = {
                 "venueId" : result['insertId']
@@ -68,18 +68,12 @@ exports.addNew = async function (req, res) {
             res.json(toDisplay);
         },
             (err) => {
-                if (err.message === 'No City') {
-                    res.statusMessage = 'Bad Request';
-                    res.status(400).send('No city provided');
-                } else if (err.message === 'Invalid Latitude') {
-                    res.statusMessage = 'Bad Request';
-                    res.status(400).send('Invalid Latitude');
-                } else if (err.message === 'Invalid Longitude') {
-                    res.statusMessage = 'Bad Request';
-                    res.status(400).send('Invalid Longitude');
-                } else if (err.message === 'Bad Request') {
+                if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
+                } else if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
                 }
             }).catch(
             (error) => {
@@ -150,6 +144,7 @@ exports.getOne = async function (req, res) {
 };
 
 exports.updateDetails = async function (req, res) {
+    req.status(500).send();
     let venueBody = req.body;
     let id = req.params.id;
 
@@ -296,8 +291,7 @@ exports.getReview = async function (req, res) {
 
 
 exports.addReview = async function (req, res) {
-    console.log(req.body.reviewBody);
-    await Venues.saveReview(req.body.reviewBody, req.body.starRating, req.body.costRating, req.params.id)
+    await Venues.saveReview(req.body.reviewBody, req.body.starRating, req.body.costRating, req.params.id, req.headers['x-authorization'])
         .then(() => {
                 res.statusMessage = 'Created';
                 res.status(201);

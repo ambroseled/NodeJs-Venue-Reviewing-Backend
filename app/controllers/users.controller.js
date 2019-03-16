@@ -144,9 +144,33 @@ exports.register = async function(req, res) {
 };
 
 exports.updateDetails = async function(req, res) {
-    //TODO
-    res.statusMessage = 'Internal Server Error';
-    res.status(500).send('Internal Server Error');
+    await Users.patchUser(req.body.givenName, req.body.familyName, req.body.password, req.headers['x-authorization'], req.params.id)
+        .then((result) => {
+                res.statusMessage = 'OK';
+                res.status(200).send('User Updated');
+            },
+            (err) => {
+                if (err.message === 'Bad Request' || err.code === 'ER_DUP_ENTRY') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(400).send('Bad Request');
+                } else if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
+                } else if (err.message === 'Forbidden') {
+                    res.statusMessage = 'Forbidden';
+                    res.status(403).send('Forbidden');
+                } else if (err.message === 'Not Found') {
+                    res.statusMessage = 'Not Found';
+                    res.status(404).send('Not Found');
+                }
+            }
+        ).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
+            }
+        );
 };
 
 /**
@@ -189,9 +213,22 @@ exports.removePhoto = async function(req, res) {
 };
 
 exports.logout = async function(req, res) {
-    //TODO
-    res.statusMessage = 'Internal Server Error';
-    res.status(500).send('Internal Server Error');
+    await Users.logout(req.headers['x-authorization'])
+        .then((result) => {
+                res.statusMessage = 'OK';
+                res.status(200).send();
+            }, (err) => {
+                if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
+                }
+            }
+        ).catch(
+            (error) => {
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
+            }
+        );
 };
 
 /**
@@ -214,7 +251,6 @@ exports.login = async function(req, res) {
             }
         ).catch(
             (error) => {
-                console.error(error);
                 res.statusMessage = 'Bad Request';
                 res.status(400).send('Bad Request');
             }

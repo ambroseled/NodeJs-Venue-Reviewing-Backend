@@ -1,6 +1,16 @@
 const db = require("../../config/db");
 
-
+async function getUser(token) {
+    if (!token) {
+        return null;
+    }
+    let queryString = "SELECT user_id FROM User WHERE auth_token = ?";
+    let userRow = await db.getPool().query(queryString, token);
+    if (userRow.length < 1) {
+        return null;
+    }
+    return userRow[0]['user_id'];
+}
 
 exports.makePhotoPrimary = async function (id) {
     Promise.reject("Noot");
@@ -58,9 +68,6 @@ exports.updateVenue = async function (venueBody, id) {
     let categoryId = venueBody['categoryId'];
     let city = venueBody['city'];
     let venueName = venueBody['venueName'];
-
-
-
 
 
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
@@ -121,7 +128,6 @@ exports.updateVenue = async function (venueBody, id) {
         if (resultId[0]['COUNT(*)'] === 0) {
             return Promise.reject(new Error("Not Found"));
         }
-        console.log(queryString, values);
         let result = await db.getPool().query(queryString, values);
 
         return Promise.resolve();
@@ -152,21 +158,22 @@ exports.getVenue = async function (id) {
     }
 };
 
-exports.addNewVenue = async function (venueBody) {
-
-    if (!venueBody['city']) {
-        return Promise.reject(new Error('No City'));
-    } else if (venueBody['city'].length === 0) {
-        return Promise.reject(new Error('No City'));
-    } else if (venueBody['latitude'] > 90.0) {
-        return Promise.reject(new Error('Invalid Latitude'));
-    } else if (venueBody['longitude'] < -180.0) {
-        return Promise.reject(new Error('Invalid Longitude'));
+exports.addNewVenue = async function (venueBody, token) {
+    if (!token) {
+        return Promise.reject(new Error("Unauthorized"));
     }
+    let user = await getUser(token);
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+
+    if (!venueBody['city'] || venueBody['longitude'] < -180.0 || venueBody['latitude'] > 90.0 || venueBody['city'].length === 0) {
+        return Promise.reject(new Error('Bad Request'));
+    }
+    console.log(new Date());
     let queryString = "INSERT INTO Venue (venue_name, admin_id, category_id, city, short_description, long_description, address, " +
-        "latitude, longitude, date_added) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?, NOW())";
+        "latitude, longitude, date_added) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?, CURDATE())";
     let categoryCheck = "SELECT COUNT(*) FROM VenueCategory WHERE category_id = ?";
-    console.log("noot");
     let values = [venueBody['venueName'], 1, venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
     venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude']];
 
@@ -272,14 +279,13 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
 
 
 exports.getReviews = async function (id) {
+
     let queryString = "Select review_author_id, username, review_body, star_rating, cost_rating, time_posted " +
         "FROM Review JOIN User ON review_author_id = user_id WHERE reviewed_venue_id = ? " +
         "ORDER BY time_posted DESC";
     try {
 
         let reviewRows = await db.getPool().query(queryString, id);
-
-        console.log(reviewRows);
 
         if (reviewRows.length === 0) {
             return Promise.reject(new Error('Not Found'));
@@ -291,10 +297,16 @@ exports.getReviews = async function (id) {
 };
 
 
-exports.saveReview = async function (reviewBody, starRating, costRating, id) {
-
-
-    if (!reviewBody|| !starRating || !costRating || (starRating % 1) !== 0 || (costRating % 1) !== 0){
+exports.saveReview = async function (reviewBody, starRating, costRating, id, token) {
+    if (!token) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+    let user = await getUser(token);
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+    if (!reviewBody || !starRating || costRating === undefined || (starRating % 1) !== 0 || (costRating % 1) !== 0) {
+        console.log("noot");
         return Promise.reject(new Error("Bad Request"));
     }
     if (reviewBody.length < 1) {
@@ -308,35 +320,25 @@ exports.saveReview = async function (reviewBody, starRating, costRating, id) {
     }
 
 
-
-    let author_id = 1; //TODO get logged in user
-    let time_posted = new Date();
-
     let queryString = "INSERT INTO Review (reviewed_venue_id, review_author_id, review_body, star_rating, cost_rating, " +
         "time_posted) VALUES (?, ?, ?, ?, ?, NOW())";
-    let queryAdmin = "SELECT admin_id FROM VENUE WHERE venue_id = ?";
-    let queryPreviousReview = "SELECT COUNT(*) FROM REVIEW WHERE reviewed_venue_id = ? AND review_author_id = ?";
+    let queryAdmin = "SELECT admin_id FROM Venue WHERE venue_id = ?";
 
-    let values = [id, author_id, reviewBody, starRating, costRating];
+    let queryPreviousReview = "SELECT COUNT(*) FROM Review WHERE reviewed_venue_id = ? AND review_author_id = ?";
 
+    let values = [id, user, reviewBody, starRating, costRating];
 
     try {
-        /**
-        let admin = await db.getPool().query(queryAdmin, );
+        let admin = await db.getPool().query(queryAdmin, id);
 
-        if (author_id !== admin[0]['admin_id']) { //TODO check against current user
+        if (user === admin[0]['admin_id']) {
             return Promise.reject(new Error("Forbidden"));
-        }*/
+        }
 
-        /**
-        let previous = await db.getPool().query(queryString, [id, current_user]);
-        if (previous[0]['COUNT(*)'] > 0) { //TODO check against current user
+        let previous = await db.getPool().query(queryPreviousReview, [id, user]);
+        if (previous[0]['COUNT(*)'] > 0) {
             return Promise.reject(new Error("Forbidden"));
-        }*/
-
-        //TODO Unauthorized
-
-
+        }
 
         let result = await db.getPool().query(queryString, values);
 
