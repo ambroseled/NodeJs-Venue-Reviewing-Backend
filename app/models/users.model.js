@@ -107,8 +107,7 @@ exports.addUser = async function (username, email, given_name, family_name, pass
 
 exports.patchUser = async function (givenName, familyName, password, token, id) {
     let user = await getUser(token);
-
-    console.log("familyName", familyName.length);
+    console.log("beans");
 
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
@@ -117,10 +116,11 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
         return Promise.reject(new Error("Forbidden"));
     }
 
-    let givenValid = givenName && givenName.length > 1;
-    let familyValid = familyName && familyName.length > 1;
-    let passValid = password && password.length > 1 && (typeof password) === "string";
-
+    let givenValid = !!givenName && givenName.length > 1;
+    let familyValid = !!familyName && familyName.length > 1;
+    let passValid = !!password && password.length > 1 && (typeof password) === "string";
+    console.log("Values: ", givenName, familyName, password);
+    console.log("Validity: ", givenValid, familyValid, passValid);
 
     if (!givenValid && !familyValid && !passValid ) {
         return Promise.reject(new Error("Bad Request"));
