@@ -240,7 +240,7 @@ exports.addNewVenue = async function (venueBody, token) {
         "latitude, longitude, date_added) VALUES (?, ?, ?, ? ,?, ?, ?, ?, ?, ?)";
     let categoryCheck = "SELECT COUNT(*) FROM VenueCategory WHERE category_id = ?";
     let values = [venueBody['venueName'], 1, venueBody['categoryId'], venueBody['city'], venueBody['shortDescription'],
-    venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude'], new Date()];
+    venueBody['longDescription'], venueBody['address'], venueBody['latitude'], venueBody['longitude'], new Date(new Date().toUTCString())];
 
     try {
         let categoryResult = await db.getPool().query(categoryCheck, venueBody['categoryId']);
