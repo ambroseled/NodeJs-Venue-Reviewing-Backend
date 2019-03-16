@@ -59,7 +59,14 @@ exports.getAllCategories = async function () {
     }
 };
 
-exports.updateVenue = async function (venueBody, id) {
+exports.updateVenue = async function (venueBody, id, token) {
+    if (!token) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+    let user = await getUser(token);
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
     let latitude = venueBody['latitude'];
     let longitude = venueBody['longitude'];
     let address = venueBody['address'];
@@ -113,7 +120,7 @@ exports.updateVenue = async function (venueBody, id) {
     try {
 
         let resultAdmin = await db.getPool().query(getAdminQuery, id);
-        if (true === false) { // TODO check against current user once done
+        if (user !== resultAdmin[0]['admin_id']) { // TODO check against current user once done
             return Promise.reject(new Error("Forbidden"));
         }
 

@@ -144,13 +144,12 @@ exports.getOne = async function (req, res) {
 };
 
 exports.updateDetails = async function (req, res) {
-    req.status(500).send();
     let venueBody = req.body;
     let id = req.params.id;
 
     //TODO return 400 when no changes given
 
-    await Venues.updateVenue(venueBody, id)
+    await Venues.updateVenue(venueBody, id, req.headers['x-authorization'])
         .then((result) => {
                 res.statusMessage = 'OK';
                 res.status(200);
@@ -166,6 +165,9 @@ exports.updateDetails = async function (req, res) {
                 } else if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
+                }else if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
                 }
             }).catch(
             (error) => {
