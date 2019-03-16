@@ -158,7 +158,7 @@ exports.updateDetails = async function (req, res) {
             (err) => {
                 if (err.message === 'Forbidden') {
                     res.statusMessage = 'Forbidden';
-                    res.status(401).send('Forbidden');
+                    res.status(403).send('Forbidden');
                 } else if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Not Found');

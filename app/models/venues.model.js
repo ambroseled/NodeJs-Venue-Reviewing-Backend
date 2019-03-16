@@ -174,7 +174,8 @@ exports.updateVenue = async function (venueBody, id, token) {
     let queryString = "Update Venue Set " + setArgs.join(", ") + " WHERE venue_id = ?";
     values.push(id);
 
-
+    console.log(queryString);
+    console.log(values);
 
     try {
 
@@ -183,7 +184,6 @@ exports.updateVenue = async function (venueBody, id, token) {
             return Promise.reject(new Error("Forbidden"));
         }
 
-
         if (categoryIdValid) {
             let categoryResult = await db.getPool().query(categoryCheck, categoryId);
             if (categoryResult[0]['COUNT(*)'] === 0) {
@@ -191,16 +191,16 @@ exports.updateVenue = async function (venueBody, id, token) {
             }
         }
 
-        /**
         let resultId = await db.getPool().query(idCheck, id);
         if (resultId[0]['COUNT(*)'] === 0) {
             return Promise.reject(new Error("Not Found"));
-        }*/
+        }
 
         let result = await db.getPool().query(queryString, values);
 
         return Promise.resolve();
     } catch(err) {
+        console.log(err);
         return Promise.reject(err);
     }
 };
