@@ -76,65 +76,127 @@ exports.updateVenue = async function (venueBody, id, token) {
     let city = venueBody['city'];
     let venueName = venueBody['venueName'];
 
+    let latitudeValid = true;
+    let longitudeValid = true;
+    let addressValid = true;
+    let longDesValid = true;
+    let shortDesValid = true;
+    let categoryIdValid = true;
+    let cityValid = true;
+    let venueNameValid = true;
+
+    let setArgs = [];
+    let values = [];
+
+    if (!latitude) {
+        latitudeValid = false;
+    } else if (latitude < -180 || latitude > 180) {
+        return Promise.reject(new Error("Bad Request"));
+    } else {
+        setArgs.push("latitude = ?");
+        values.push(latitude);
+    }
+
+    if (!longitude) {
+        longitudeValid = false;
+    }  else if (longitude < -90 || longitude > 90) {
+        return Promise.reject(new Error("Bad Request"));
+    } else {
+        setArgs.push("longitude = ?");
+        values.push(longitude);
+    }
+
+    if (!address) {
+        addressValid = false;
+        if (address !== undefined && address.length < 1) {
+            return Promise.reject(new Error("Bad Request"));
+        }
+    } else {
+        setArgs.push("address = ?");
+        values.push(address);
+    }
+
+    if (!longDes) {
+        longDesValid = false;
+        if (longDes !== undefined && longDes.length < 1) {
+            return Promise.reject(new Error("Bad Request"));
+        }
+    } else {
+        setArgs.push("long_description = ?");
+        values.push(longDes);
+    }
+
+    if (!shortDes) {
+        shortDesValid = false;
+        if (shortDes !== undefined && shortDes.length < 1) {
+            return Promise.reject(new Error("Bad Request"));
+        }
+    } else {
+        setArgs.push("short_description = ?");
+        values.push(shortDes);
+    }
+
+    if (categoryId === undefined) {
+        categoryIdValid = false;
+    } else {
+        //TODO query to see if category id is valid
+        setArgs.push("category_id = ?");
+        values.push(categoryId);
+    }
+
+    if (!city) {
+        cityValid = false;
+        if (city !== undefined && city.length < 1) {
+            return Promise.reject(new Error("Bad Request"));
+        }
+    } else {
+        setArgs.push("city = ?");
+        values.push(city);
+    }
+
+    if (!venueName) {
+        venueNameValid = false;
+        if (venueName !== undefined && venueName.length < 1) {
+            return Promise.reject(new Error("Bad Request"));
+        }
+    } else {
+        setArgs.push("venueName = ?");
+        values.push(venueName);
+    }
+
+    if (!venueNameValid && !cityValid && !addressValid && !longDesValid && !shortDesValid && !categoryIdValid && !longitudeValid && !latitudeValid) {
+        return Promise.reject(new Error("Bad Request"));
+    }
 
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
     let idCheck = "SELECT COUNT(*) FROM Venue WHERE venue_id = ?";
     let categoryCheck = "SELECT COUNT(*) FROM VenueCategory WHERE category_id = ?";
-    let queryString = "";
-    let values = [];
+    let queryString = "Update Venue Set " + setArgs.join(", ") + " WHERE venue_id = ?";
+    values.push(id);
 
-
-    if (longDes.length >= 1 && shortDes.length >= 1) {
-        queryString = "UPDATE Venue SET venue_name = ?, category_id = ?, city = ?, short_description = ?," +
-            "long_description = ?, address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
-        values = [venueName, categoryId, city, shortDes, longDes, address, latitude, longitude, id];
-    } else if (longDes.length >= 1) {
-        queryString = "UPDATE Venue SET venue_name = ?, category_id = ?, city = ?, " +
-            "long_description = ?, address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
-        values = [venueName, categoryId, city, longDes, address, latitude, longitude, id];
-    } else {
-        queryString = "UPDATE Venue SET venue_name = ?, category_id = ?, city = ?, short_description = ?," +
-            " address = ?, latitude = ?, longitude = ? WHERE venue_id = ?";
-        values = [venueName, categoryId, city, shortDes, address, latitude, longitude, id];
-    }
-
-
-
-    if (latitude < -180 || latitude > 180) {
-        return Promise.reject(new Error("Bad Request"));
-    }
-    if (longitude < -90 || longitude > 90) {
-        return Promise.reject(new Error("Bad Request"));
-    }
-    if (address.length < 1) {
-        return Promise.reject(new Error("Bad Request"));
-    }
-    if (city.length < 1) {
-        return Promise.reject(new Error("Bad Request"));
-    }
-    if (venueName.length < 1) {
-        return Promise.reject(new Error("Bad Request"));
-    }
 
 
     try {
 
         let resultAdmin = await db.getPool().query(getAdminQuery, id);
-        if (user !== resultAdmin[0]['admin_id']) { // TODO check against current user once done
+        if (user !== resultAdmin[0]['admin_id']) {
             return Promise.reject(new Error("Forbidden"));
         }
 
-        //TODO Unauthorized
 
-        let categoryResult = await db.getPool().query(categoryCheck, categoryId);
-        if (categoryResult[0]['COUNT(*)'] === 0) {
-            return Promise.reject(new Error("Bad Request"));
+        if (categoryIdValid) {
+            let categoryResult = await db.getPool().query(categoryCheck, categoryId);
+            if (categoryResult[0]['COUNT(*)'] === 0) {
+                return Promise.reject(new Error("Bad Request"));
+            }
         }
 
+        /**
         let resultId = await db.getPool().query(idCheck, id);
         if (resultId[0]['COUNT(*)'] === 0) {
             return Promise.reject(new Error("Not Found"));
-        }
+        }*/
+
         let result = await db.getPool().query(queryString, values);
 
         return Promise.resolve();

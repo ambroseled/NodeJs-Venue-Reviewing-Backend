@@ -127,7 +127,6 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
     if (givenName !== undefined && givenName.length < 1) {
         return Promise.reject(new Error("Bad Request"));
     }
-    console.log(familyName);
     if (!familyName) {
         familyValid = false;
     }
