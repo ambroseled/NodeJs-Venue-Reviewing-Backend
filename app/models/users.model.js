@@ -116,7 +116,6 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
         return Promise.reject(new Error("Forbidden"));
     }
 
-    console.log(!!password, password.length > 1, (typeof password) === "string");
     let givenValid = true;
     let familyValid = true;
     let passValid = true;
@@ -124,11 +123,11 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
     if (!givenName) {
         givenValid = false;
     }
-    console.log("ree");
+
     if (givenName !== undefined && givenName.length < 1) {
         return Promise.reject(new Error("Bad Request"));
     }
-    console.log("noot");
+    console.log(familyName);
     if (!familyName) {
         familyValid = false;
     }
@@ -138,7 +137,7 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
     if (!password) {
         passValid = false;
     }
-    if (password !== undefined && password.length < 1 || (typeof password) !== "string") {
+    if (password !== undefined && (password.length < 1 || (typeof password) !== "string")) {
         return Promise.reject(new Error("Bad Request"));
     }
 
