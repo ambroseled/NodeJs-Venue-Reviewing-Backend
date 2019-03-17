@@ -201,15 +201,47 @@ exports.getPhoto = async function(req, res) {
 };
 
 exports.setPhoto = async function(req, res) {
-    //TODO
-    res.statusMessage = 'Internal Server Error';
-    res.status(500).send('Internal Server Error');
+    await Users.setPrimaryPhoto(req.headers['x-authorization'], req.params.id)
+        .then((result) => {
+                res.statusMessage = 'OK';
+                res.status(200).send();
+            }, (err) => {
+                if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
+                }  else if (err.message === 'Forbidden') {
+                    res.statusMessage = 'Forbidden';
+                    res.status(403).send('Forbidden');
+                }
+            }
+        ).catch(
+            (error) => {
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
+            }
+        );
 };
 
 exports.removePhoto = async function(req, res) {
-    //TODO
-    res.statusMessage = 'Internal Server Error';
-    res.status(500).send('Internal Server Error');
+    await Users.removePrimaryPhoto(req.headers['x-authorization'], req.params.id)
+        .then((result) => {
+                res.statusMessage = 'OK';
+                res.status(200).send();
+            }, (err) => {
+                if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
+                }  else if (err.message === 'Forbidden') {
+                    res.statusMessage = 'Forbidden';
+                    res.status(403).send('Forbidden');
+                }
+            }
+        ).catch(
+            (error) => {
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
+            }
+        );
 };
 
 exports.logout = async function(req, res) {

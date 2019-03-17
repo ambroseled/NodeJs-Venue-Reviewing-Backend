@@ -107,7 +107,6 @@ exports.addUser = async function (username, email, given_name, family_name, pass
 
 exports.patchUser = async function (givenName, familyName, password, token, id) {
     let user = await getUser(token);
-    console.log("beans");
 
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
@@ -236,4 +235,41 @@ exports.login = async function (username, email, password) {
 };
 
 
+exports.setPrimaryPhoto = async function (token, id) {
+    let user = await getUser(token);
 
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+    if (user !== parseInt(id, 10)) {
+        return Promise.reject(new Error("Forbidden"));
+    }
+
+    return Promise.reject(new Error("Bad Request"));
+    try {
+
+
+    } catch(err) {
+        return Promise.reject(err);
+    }
+};
+
+
+exports.removePrimaryPhoto = async function (token, id) {
+    let user = await getUser(token);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+    if (user !== parseInt(id, 10)) {
+        return Promise.reject(new Error("Forbidden"));
+    }
+
+    return Promise.reject(new Error("Bad Request"));
+    try {
+
+
+    } catch(err) {
+        return Promise.reject(err);
+    }
+};
