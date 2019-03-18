@@ -12,12 +12,46 @@ async function getUser(token) {
     return userRow[0]['user_id'];
 }
 
-exports.makePhotoPrimary = async function (id) {
-    Promise.reject("Noot");
+exports.makePhotoPrimary = async function (id, token) {
+    let user = await getUser(token);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+
+    let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
+    
+    try {
+        let resultAdmin = await db.getPool().query(getAdminQuery, user);
+        if (user !== resultAdmin[0]['admin_id']) {
+            return Promise.reject(new Error("Forbidden"));
+        }
+        return Promise.reject(new Error("Bad Request"));
+    } catch (err) {
+        
+    }
+
+    
 };
 
-exports.removePhoto = async function (id) {
-    Promise.reject("Noot");
+exports.removePhoto = async function (id, token) {
+    let user = await getUser(token);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+
+    let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
+
+    try {
+        let resultAdmin = await db.getPool().query(getAdminQuery, user);
+        if (user !== resultAdmin[0]['admin_id']) {
+            return Promise.reject(new Error("Forbidden"));
+        }
+        return Promise.reject(new Error("Bad Request"));
+    } catch (err) {
+
+    }
 };
 
 /**
@@ -40,8 +74,24 @@ exports.getOnePhoto = async function (id, filename, description, makePrimary) {
     }
 };
 
-exports.addNewPhoto = async function () {
-    Promise.reject("Noot");
+exports.addNewPhoto = async function (id, token) {
+    let user = await getUser(token);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+
+    let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
+
+    try {
+        let resultAdmin = await db.getPool().query(getAdminQuery, user);
+        if (user !== resultAdmin[0]['admin_id']) {
+            return Promise.reject(new Error("Forbidden"));
+        }
+        return Promise.reject(new Error("Bad Request"));
+    } catch (err) {
+
+    }
 };
 
 /**

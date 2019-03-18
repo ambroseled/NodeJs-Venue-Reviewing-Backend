@@ -208,7 +208,21 @@ exports.getCategories = async function (req, res) {
 };
 
 exports.addPhoto = async function (req, res) {
-    //TODO
+    await Venues.addNewPhoto(req.params.id, req.headers['x-authorization')
+        .then((result) => {
+
+        }, (err) => {
+            if (err.message === 'Unauthorized') {
+                res.statusMessage = 'Unauthorized';
+                res.status(401).send('Unauthorized');
+            } else if (err.message === 'Forbidden') {
+                res.statusMessage = 'Forbidden';
+                res.status(403).send('Forbidden');
+            } else if (err.message === 'Bad Request') {
+                res.statusMessage = 'Bad Request';
+                res.status(403).send('Bad Request');
+            }
+        });
 };
 
 
@@ -239,12 +253,40 @@ exports.getPhoto = async function (req, res) {
 
 
 exports.deletePhoto = async function (req, res) {
-    //TODO
+    await Venues.removePhoto(req.params.id, req.headers['x-authorization')
+        .then((result) => {
+
+        }, (err) => {
+            if (err.message === 'Unauthorized') {
+                res.statusMessage = 'Unauthorized';
+                res.status(401).send('Unauthorized');
+            } else if (err.message === 'Forbidden') {
+                res.statusMessage = 'Forbidden';
+                res.status(403).send('Forbidden');
+            } else if (err.message === 'Bad Request') {
+                res.statusMessage = 'Bad Request';
+                res.status(403).send('Bad Request');
+            }
+        });
 };
 
 
 exports.setPrimaryPhoto = async function (req, res) {
-    //TODO
+    await Venues.makePhotoPrimary(req.params.id, req.headers['x-authorization')
+        .then((result) => {
+
+        }, (err) => {
+            if (err.message === 'Unauthorized') {
+                res.statusMessage = 'Unauthorized';
+                res.status(401).send('Unauthorized');
+            } else if (err.message === 'Forbidden') {
+                res.statusMessage = 'Forbidden';
+                res.status(403).send('Forbidden');
+            } else if (err.message === 'Bad Request') {
+                res.statusMessage = 'Bad Request';
+                res.status(403).send('Bad Request');
+            }
+        });
 };
 
 
