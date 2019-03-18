@@ -208,7 +208,7 @@ exports.getCategories = async function (req, res) {
 };
 
 exports.addPhoto = async function (req, res) {
-    await Venues.addNewPhoto(req.params.id, req.headers['x-authorization')
+    await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'])
         .then((result) => {
 
         }, (err) => {
@@ -253,7 +253,7 @@ exports.getPhoto = async function (req, res) {
 
 
 exports.deletePhoto = async function (req, res) {
-    await Venues.removePhoto(req.params.id, req.headers['x-authorization')
+    await Venues.removePhoto(req.params.id, req.headers['x-authorization'])
         .then((result) => {
 
         }, (err) => {
@@ -272,7 +272,7 @@ exports.deletePhoto = async function (req, res) {
 
 
 exports.setPrimaryPhoto = async function (req, res) {
-    await Venues.makePhotoPrimary(req.params.id, req.headers['x-authorization')
+    await Venues.makePhotoPrimary(req.params.id, req.headers['x-authorization'])
         .then((result) => {
 
         }, (err) => {
