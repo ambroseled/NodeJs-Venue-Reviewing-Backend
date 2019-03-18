@@ -212,6 +212,9 @@ exports.setPhoto = async function(req, res) {
                 }  else if (err.message === 'Forbidden') {
                     res.statusMessage = 'Forbidden';
                     res.status(403).send('Forbidden');
+                }  else if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(403).send('Bad Request');
                 }
             }
         ).catch(
@@ -234,6 +237,9 @@ exports.removePhoto = async function(req, res) {
                 }  else if (err.message === 'Forbidden') {
                     res.statusMessage = 'Forbidden';
                     res.status(403).send('Forbidden');
+                }  else if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(403).send('Bad Request');
                 }
             }
         ).catch(

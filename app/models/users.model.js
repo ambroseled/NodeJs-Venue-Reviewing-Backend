@@ -60,7 +60,6 @@ exports.getAllReviews = async function (id) {
 };
 
 exports.getOnePhoto = async function (id, filename) {
-    // TODO work out where profile photos are stored
     /**
     let queryString = "Select  FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
     try {
@@ -236,8 +235,9 @@ exports.login = async function (username, email, password) {
 
 
 exports.setPrimaryPhoto = async function (token, id) {
+    console.log("reeeee");
     let user = await getUser(token);
-
+    console.log(user);
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
@@ -247,7 +247,6 @@ exports.setPrimaryPhoto = async function (token, id) {
 
     return Promise.reject(new Error("Bad Request"));
     try {
-
 
     } catch(err) {
         return Promise.reject(err);
