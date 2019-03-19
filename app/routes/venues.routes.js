@@ -1,4 +1,8 @@
 const venues = require('../controllers/venues.controller');
+const multer = require('multer');
+
+const upload = multer({storage: multer.memoryStorage()});
+
 
 module.exports = function (app) {
     app.route(app.rootUrl + '/venues')
@@ -13,7 +17,7 @@ module.exports = function (app) {
         .get(venues.getCategories);
 
     app.route(app.rootUrl + '/venues/:id/photos')
-        .post(venues.addPhoto);
+        .post(upload.single('photo'), venues.addPhoto);
 
     app.route(app.rootUrl + '/venues/:id/photos/:photoFileName')
         .get(venues.getPhoto)

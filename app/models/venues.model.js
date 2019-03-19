@@ -74,22 +74,37 @@ exports.getOnePhoto = async function (id, filename, description, makePrimary) {
     }
 };
 
-exports.addNewPhoto = async function (id, token, filename, description) {
+exports.addNewPhoto = async function (id, token, filename, description, makePrimary) {
     let user = await getUser(token);
 
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
 
+    console.log(description, makePrimary);
+
+    if (!filename || !description || makePrimary === undefined) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+
+
+    let venueQuery = "SELECT COUNT(*) FROM Venue WHERE venue_id = ?";
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
-    let photoQuery = "INSERT INTO "
+    let photoQuery = "INSERT INTO VenuePhoto (venue_id, photo_filename, photo_description, is_primary) VALUES (?, ?, ?, ?)";
+    let values = [id, filename, description, makePrimary];
 
     try {
-        let resultAdmin = await db.getPool().query(getAdminQuery, user);
+        let resultVenue = await db.getPool().query(venueQuery, id);
+        if (resultVenue[0]['COUNT(*)'] === 0) {
+            return Promise.reject(new Error("Not Found"));
+        }
+
+        let resultAdmin = await db.getPool().query(getAdminQuery, id);
         if (user !== resultAdmin[0]['admin_id']) {
             return Promise.reject(new Error("Forbidden"));
         }
-        return Promise.reject(new Error("Bad Request"));
+        let result = await db.getPool().query(photoQuery, values);
+        return Promise.resolve(result);
     } catch (err) {
 
     }
@@ -356,13 +371,14 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         "AVG(star_rating), mode_cost_rating FROM Venue LEFT OUTER JOIN Review on Venue.venue_id = reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON Venue.venue_id = M.venue_id";
     let primaryPhotoQuery = "SELECT Venue.venue_id, photo_filename FROM Venue LEFT OUTER JOIN VenuePhoto VP on Venue.venue_id = VP.venue_id";
 
-    let distValues = [myLatitude, myLongitude, myLatitude];
+    let distValues = null;
     if (myLatitude && myLongitude) {
         queryString = "SELECT Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, " +
             "AVG(star_rating), mode_cost_rating, ( 3959 * acos( cos( radians( ? ) ) * cos( radians( latitude ) ) * cos( " +
             "radians( longitude ) - radians( ? ) ) + sin( radians( ? ) ) * sin(radians(latitude)) ) ) AS distance FROM " +
             "Venue LEFT OUTER JOIN Review on Venue.venue_id = reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON " +
             "Venue.venue_id = M.venue_id";
+        distValues = [myLatitude, myLongitude, myLatitude];
     }
 
     if (argsWhere.length > 0) {
@@ -400,8 +416,14 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
 
 
     try {
+        let venuseRows;
+        if (myLatitude && myLongitude) {
+            venueRows = await db.getPool().query(queryString, distValues.concat(argsValues.concat(havingValues)));
+        } else {
+            venueRows = await db.getPool().query(queryString, argsValues.concat(havingValues));
+        }
 
-        let venueRows = await db.getPool().query(queryString, distValues.concat(argsValues.concat(havingValues)));
+
         let photoRows = await db.getPool().query(primaryPhotoQuery);
         let rows = [venueRows, photoRows];
         return Promise.resolve(rows);

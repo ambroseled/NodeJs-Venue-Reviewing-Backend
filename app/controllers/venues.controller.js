@@ -1,5 +1,7 @@
 const Venues = require('../models/venues.model');
 
+
+
 exports.viewAll = async function (req, res) {
     let startIndex = req.query.startIndex;
     let count = req.query.count;
@@ -229,8 +231,9 @@ exports.getCategories = async function (req, res) {
 };
 
 exports.addPhoto = async function (req, res) {
-    await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'])
+    await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'], req.file["originalname"], req.body["description"], (req.body["makePrimary"] === 'true'))
         .then((result) => {
+            res.status(201).send('OK');
 
         }, (err) => {
             if (err.message === 'Unauthorized') {
@@ -242,6 +245,9 @@ exports.addPhoto = async function (req, res) {
             } else if (err.message === 'Bad Request') {
                 res.statusMessage = 'Bad Request';
                 res.status(403).send('Bad Request');
+            } else if (err.message === 'Not Found') {
+                res.statusMessage = 'Not Found';
+                res.status(404).send('Not Found');
             }
         });
 };
