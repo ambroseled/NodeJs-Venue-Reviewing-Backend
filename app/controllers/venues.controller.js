@@ -1,5 +1,5 @@
 const Venues = require('../models/venues.model');
-
+const fs = require('fs');
 
 
 exports.viewAll = async function (req, res) {
@@ -15,8 +15,6 @@ exports.viewAll = async function (req, res) {
     let reverseSort = req.query.reverseSort;
     let myLatitude = req.query.myLatitude;
     let myLongitude = req.query.myLongitude;
-
-    console.log("noot");
 
     await Venues.getAllVenues(startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy,
         reverseSort, myLatitude, myLongitude)
@@ -109,40 +107,40 @@ exports.addNew = async function (req, res) {
 
 exports.getOne = async function (req, res) {
     await Venues.getVenue(req.params.id)
-        .then((venueRow, photoRows) => {
+        .then((data) => {
            let  photos =[];
-           if (photoRows) {
-               for (let i = 0; i < photoRows.length; i++) {
+           if (data[1]) {
+               for (let i = 0; i < data[1].length; i++) {
                    photos.push(
                        {
-                           "photoFilename" : photos[i]['photo_filename'],
-                           "photoDescription" : photos[i]['photo_description'],
-                           "isPrimary" : photos[i]['is_primary']
+                           "photoFilename" : data[1][i]['photo_filename'],
+                           "photoDescription" : data[1][i]['photo_description'],
+                           "isPrimary" : data[1][i]['is_primary']
                        }
                    )
                }
            }
 
             let toDisplay = {
-                "venueName" : venueRow['venue_name'],
+                "venueName" : data[0]['venue_name'],
                 "admin" :
                     {
-                        "userId" : venueRow['admin_id'],
-                        "username" : venueRow['username']
+                        "userId" : data[0]['admin_id'],
+                        "username" : data[0]['username']
                     },
                 "category" :
                     {
-                        "categoryId" : venueRow['category_id'],
-                        "categoryName" : venueRow['category_name'],
-                        "categoryDescription" : venueRow['category_descriptions']
+                        "categoryId" : data[0]['category_id'],
+                        "categoryName" : data[0]['category_name'],
+                        "categoryDescription" : data[0]['category_descriptions']
                     },
-                "city" : venueRow['city'],
-                "shortDescription" : venueRow['short_description'],
-                "longDescription" : venueRow['long_description'],
-                "dateAdded" : venueRow['date_added'],
-                "address" : venueRow['address'],
-                "latitude" : venueRow['latitude'],
-                "longitude" : venueRow['longitude'],
+                "city" : data[0]['city'],
+                "shortDescription" : data[0]['short_description'],
+                "longDescription" : data[0]['long_description'],
+                "dateAdded" : data[0]['date_added'],
+                "address" : data[0]['address'],
+                "latitude" : data[0]['latitude'],
+                "longitude" : data[0]['longitude'],
                 "photos" : photos
             };
 
@@ -231,25 +229,47 @@ exports.getCategories = async function (req, res) {
 };
 
 exports.addPhoto = async function (req, res) {
-    await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'], req.file["originalname"], req.body["description"], (req.body["makePrimary"] === 'true'))
-        .then((result) => {
-            res.status(201).send('OK');
 
-        }, (err) => {
-            if (err.message === 'Unauthorized') {
-                res.statusMessage = 'Unauthorized';
-                res.status(401).send('Unauthorized');
-            } else if (err.message === 'Forbidden') {
-                res.statusMessage = 'Forbidden';
-                res.status(403).send('Forbidden');
-            } else if (err.message === 'Bad Request') {
-                res.statusMessage = 'Bad Request';
-                res.status(403).send('Bad Request');
-            } else if (err.message === 'Not Found') {
-                res.statusMessage = 'Not Found';
-                res.status(404).send('Not Found');
-            }
-        });
+    if (!req.file) {
+        res.statusMessage = 'Bad Request';
+        res.status(400).send('Bad Request');
+    } else {
+        await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'], req.file["originalname"], req.body["description"], req.body["makePrimary"])
+            .then((result) => {
+
+                let filePath = "images/" + req.file["originalname"];// + "." + req.file["mimetype"].split("/")[1];
+
+                fs.writeFile(filePath, req.file['buffer'], function(err) {
+                    if (err) throw err;
+                });
+
+                res.status(201).send('OK');
+
+            }, (err) => {
+                if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
+                } else if (err.message === 'Forbidden') {
+                    res.statusMessage = 'Forbidden';
+                    res.status(403).send('Forbidden');
+                } else if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(400).send('Bad Request');
+                } else if (err.message === 'Not Found') {
+                    res.statusMessage = 'Not Found';
+                    res.status(404).send('Not Found');
+                }
+            }).catch(
+                (error) => {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
+                }
+            );
+    }
+
+
+
 };
 
 

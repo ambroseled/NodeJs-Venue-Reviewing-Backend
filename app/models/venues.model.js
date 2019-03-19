@@ -81,28 +81,49 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
         return Promise.reject(new Error("Unauthorized"));
     }
 
-    console.log(description, makePrimary);
+    if (makePrimary !== 'true' && makePrimary !== 'false') {
+        return Promise.reject(new Error("Bad Request"));
+    }
+    if (makePrimary === 'true') {
+        makePrimary = 1;
+    } else {
+        makePrimary = 0;
+    }
+
 
     if (!filename || !description || makePrimary === undefined) {
         return Promise.reject(new Error("Bad Request"));
     }
 
-
+    let checkPrimaries = "SELECT COUNT(*) FROM VenuePhoto WHERE venue_id = ?";
+    let clearPrimary = "UPDATE VenuePhoto SET is_primary = FALSE WHERE venue_id = ?";
     let venueQuery = "SELECT COUNT(*) FROM Venue WHERE venue_id = ?";
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
     let photoQuery = "INSERT INTO VenuePhoto (venue_id, photo_filename, photo_description, is_primary) VALUES (?, ?, ?, ?)";
     let values = [id, filename, description, makePrimary];
 
     try {
+        let resultPrimary = await db.getPool().query(checkPrimaries, id);
+        if (resultPrimary[0]['COUNT(*)'] === 0) {
+            makePrimary = 1;
+        }
+
         let resultVenue = await db.getPool().query(venueQuery, id);
         if (resultVenue[0]['COUNT(*)'] === 0) {
             return Promise.reject(new Error("Not Found"));
         }
 
+
         let resultAdmin = await db.getPool().query(getAdminQuery, id);
         if (user !== resultAdmin[0]['admin_id']) {
             return Promise.reject(new Error("Forbidden"));
         }
+
+
+        if (makePrimary) {
+            let resultClear = await db.getPool().query(clearPrimary, id);
+        }
+
         let result = await db.getPool().query(photoQuery, values);
         return Promise.resolve(result);
     } catch (err) {
@@ -282,8 +303,8 @@ exports.getVenue = async function (id) {
         if (venueRows.length === 0) {
             return Promise.reject(new Error('Not Found'));
         } else {
-            let photoRows = db.getPool().query(photoQueryString, venueRows[0]['admin_id']);
-            return Promise.resolve(venueRows[0], photoRows);
+            let photoRows = await db.getPool().query(photoQueryString, id);
+            return Promise.resolve([venueRows[0], photoRows]);
         }
     } catch(err) {
         return Promise.reject(err);
