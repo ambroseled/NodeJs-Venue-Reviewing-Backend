@@ -14,6 +14,8 @@ exports.viewAll = async function (req, res) {
     let myLatitude = req.query.myLatitude;
     let myLongitude = req.query.myLongitude;
 
+    console.log("noot");
+
     await Venues.getAllVenues(startIndex, count, city, q, categoryId, minStarRating, maxCostRating, adminId, sortBy,
         reverseSort, myLatitude, myLongitude)
         .then((rows) => {
@@ -21,24 +23,43 @@ exports.viewAll = async function (req, res) {
                 let photoRows = rows[1];
                 let  venues =[];
                 if (venueRows) {
-                    //TODO only show distance if lat and long are given
-                    for (let i = 0; i < venueRows.length; i++) {
-                        venues.push(
-                            {
-                                "venueId" : venueRows[i]['venue_id'],
-                                "venueName" : venueRows[i]['venue_name'],
-                                "categoryId" : venueRows[i]['category_id'],
-                                "city" : venueRows[i]['city'],
-                                "shortDescription" : venueRows[i]['short_description'],
-                                "latitude" : venueRows[i]['latitude'],
-                                "longitude" : venueRows[i]['longitude'],
-                                "meanStarRating" : venueRows[i]['AVG(star_rating)'],
-                                "modeCostRating" : venueRows[i]['mode_cost_rating'],
-                                "primaryPhoto" : photoRows[i]['photo_filename'],
-                                "distance" : 0
-                            }
-                        )
+                    if (myLongitude && myLongitude) {
+                        for (let i = 0; i < venueRows.length; i++) {
+                            venues.push(
+                                {
+                                    "venueId" : venueRows[i]['venue_id'],
+                                    "venueName" : venueRows[i]['venue_name'],
+                                    "categoryId" : venueRows[i]['category_id'],
+                                    "city" : venueRows[i]['city'],
+                                    "shortDescription" : venueRows[i]['short_description'],
+                                    "latitude" : venueRows[i]['latitude'],
+                                    "longitude" : venueRows[i]['longitude'],
+                                    "meanStarRating" : venueRows[i]['AVG(star_rating)'],
+                                    "modeCostRating" : venueRows[i]['mode_cost_rating'],
+                                    "primaryPhoto" : photoRows[i]['photo_filename'],
+                                    "distance" : venueRows[i]['distance'],
+                                }
+                            )
+                        }
+                    } else {
+                        for (let i = 0; i < venueRows.length; i++) {
+                            venues.push(
+                                {
+                                    "venueId" : venueRows[i]['venue_id'],
+                                    "venueName" : venueRows[i]['venue_name'],
+                                    "categoryId" : venueRows[i]['category_id'],
+                                    "city" : venueRows[i]['city'],
+                                    "shortDescription" : venueRows[i]['short_description'],
+                                    "latitude" : venueRows[i]['latitude'],
+                                    "longitude" : venueRows[i]['longitude'],
+                                    "meanStarRating" : venueRows[i]['AVG(star_rating)'],
+                                    "modeCostRating" : venueRows[i]['mode_cost_rating'],
+                                    "primaryPhoto" : photoRows[i]['photo_filename']
+                                }
+                            )
+                        }
                     }
+
                 }
 
                 res.statusMessage = 'OK';

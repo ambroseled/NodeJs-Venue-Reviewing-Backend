@@ -321,6 +321,7 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
     let argsSort = null;
     let argsHaving = [];
     let havingValues = [];
+    let orderDist = false;
     if (city) {
         argsWhere.push("city = ?");
         argsValues.push(city);
@@ -346,13 +347,24 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
             if (!myLongitude || !myLatitude) {
                 return Promise.reject("Bad Request");
             } else {
-                //TODO Calc distance and set sort
+                orderDist = true;
             }
         }
     }
 
-    let queryString = "SELECT Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, AVG(star_rating), mode_cost_rating FROM Venue LEFT OUTER JOIN Review on Venue.venue_id = reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON Venue.venue_id = M.venue_id";
+    let queryString = "SELECT Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, " +
+        "AVG(star_rating), mode_cost_rating FROM Venue LEFT OUTER JOIN Review on Venue.venue_id = reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON Venue.venue_id = M.venue_id";
     let primaryPhotoQuery = "SELECT Venue.venue_id, photo_filename FROM Venue LEFT OUTER JOIN VenuePhoto VP on Venue.venue_id = VP.venue_id";
+
+    let distValues = [myLatitude, myLongitude, myLatitude];
+    if (myLatitude && myLongitude) {
+        queryString = "SELECT Venue.venue_id, venue_name, category_id, city, short_description, latitude, longitude, " +
+            "AVG(star_rating), mode_cost_rating, ( 3959 * acos( cos( radians( ? ) ) * cos( radians( latitude ) ) * cos( " +
+            "radians( longitude ) - radians( ? ) ) + sin( radians( ? ) ) * sin(radians(latitude)) ) ) AS distance FROM " +
+            "Venue LEFT OUTER JOIN Review on Venue.venue_id = reviewed_venue_id LEFT OUTER JOIN ModeCostRating M ON " +
+            "Venue.venue_id = M.venue_id";
+    }
+
     if (argsWhere.length > 0) {
         queryString += " WHERE " + argsWhere.join(" AND ");
     }
@@ -365,6 +377,8 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
 
     if (argsSort) {
         queryString += argsSort;
+    } else if (orderDist) {
+        queryString += " ORDER BY distance"
     } else {
         queryString += ' ORDER BY AVG(star_rating)';
     }
@@ -375,6 +389,7 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         queryString += ' DESC';
     }
 
+
     if (startIndex && count) {
         queryString += ' LIMIT ' + count + ' OFFSET ' + startIndex; //TODO Investigate why this does work as a wild card
     } else if (count) {
@@ -383,8 +398,10 @@ exports.getAllVenues = async function (startIndex, count, city, q, categoryId, m
         queryString += ' LIMIT 18446744073709551615 OFFSET ' + startIndex; // 18446744073709551615 is used as limit is required and this is the max value possible
     }
 
+
     try {
-        let venueRows = await db.getPool().query(queryString, argsValues.concat(havingValues));
+
+        let venueRows = await db.getPool().query(queryString, distValues.concat(argsValues.concat(havingValues)));
         let photoRows = await db.getPool().query(primaryPhotoQuery);
         let rows = [venueRows, photoRows];
         return Promise.resolve(rows);
