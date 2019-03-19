@@ -74,7 +74,7 @@ exports.getOnePhoto = async function (id, filename, description, makePrimary) {
     }
 };
 
-exports.addNewPhoto = async function (id, token) {
+exports.addNewPhoto = async function (id, token, filename, description) {
     let user = await getUser(token);
 
     if (!user) {
@@ -82,6 +82,7 @@ exports.addNewPhoto = async function (id, token) {
     }
 
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
+    let photoQuery = "INSERT INTO "
 
     try {
         let resultAdmin = await db.getPool().query(getAdminQuery, user);

@@ -201,24 +201,32 @@ exports.getPhoto = async function(req, res) {
 };
 
 exports.setPhoto = async function(req, res) {
-    await Users.setPrimaryPhoto(req.headers['x-authorization'], req.params.id)
-        .then((result) => {
+    console.log(req.headers);
+    let contentType = req.headers['content-type'];
+    console.log(contentType);
+    await Users.savePhoto(req.params.id, req.params.photo, contentType, req.body.description, req.headers['x-authorization'])
+        .then((photoRow) => {
                 res.statusMessage = 'OK';
-                res.status(200).send();
-            }, (err) => {
-                if (err.message === 'Unauthorized') {
+                res.send(photoRow);
+            },
+            (err) => {
+                if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(400).send('Bad Request');
+                } else if (err.message === 'Unauthorized') {
                     res.statusMessage = 'Unauthorized';
                     res.status(401).send('Unauthorized');
-                }  else if (err.message === 'Forbidden') {
+                } else if (err.message === 'Forbidden') {
                     res.statusMessage = 'Forbidden';
                     res.status(403).send('Forbidden');
-                }  else if (err.message === 'Bad Request') {
-                    res.statusMessage = 'Bad Request';
-                    res.status(403).send('Bad Request');
+                } else if (err.message === 'Not Found') {
+                    res.statusMessage = 'Not Found';
+                    res.status(404).send('Not Found');
                 }
             }
         ).catch(
             (error) => {
+                console.error(error);
                 res.statusMessage = 'Internal Server Error';
                 res.status(500).send('Internal Server Error');
             }

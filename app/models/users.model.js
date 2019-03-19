@@ -59,7 +59,35 @@ exports.getAllReviews = async function (id) {
     }
 };
 
+exports.savePhoto = async function (id, filename, type, description, token) {
+    let user = await getUser(token);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
+    if (user !== parseInt(id, 10)) {
+        return Promise.reject(new Error("Forbidden"));
+    }
+    if (!filename || !description) {
+        return Promise.reject(new Error("Bad Request"));
+    }
+
+    let queryString = "INSERT INTO VenuePhoto (venue_id, photo_filename, photo_description) VALUES (?, ?, ?)";
+
+    try {
+
+        let result = await db.getPool().query(queryString, [id, filename, descrption]);
+
+
+        return Promise.resolve(result);
+    } catch(err) {
+        return Promise.reject(err);
+    }
+};
+
+
 exports.getOnePhoto = async function (id, filename) {
+    // TODO work out where profile photos are stored
     /**
     let queryString = "Select  FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
     try {
