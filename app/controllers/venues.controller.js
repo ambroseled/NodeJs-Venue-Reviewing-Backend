@@ -240,7 +240,8 @@ exports.addPhoto = async function (req, res) {
             .then((result) => {
 
                 let filePath = "images/" + req.file["originalname"];// + "." + req.file["mimetype"].split("/")[1];
-                if (!fs.exists("images/")) {
+                if (!fs.existsSync("images/")) {
+                    console.log("reeeeeee");
                     fs.mkdir("images/");
                 }
                 fs.writeFile(filePath, req.file['buffer'], function(err) {
