@@ -1,5 +1,5 @@
 const Venues = require('../models/venues.model');
-const fs = require('fs');
+const fs = require('mz/fs');
 
 
 exports.viewAll = async function (req, res) {
