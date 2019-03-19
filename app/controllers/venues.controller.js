@@ -230,6 +230,8 @@ exports.getCategories = async function (req, res) {
 
 exports.addPhoto = async function (req, res) {
 
+
+
     if (!req.file) {
         res.statusMessage = 'Bad Request';
         res.status(400).send('Bad Request');
@@ -238,7 +240,9 @@ exports.addPhoto = async function (req, res) {
             .then((result) => {
 
                 let filePath = "images/" + req.file["originalname"];// + "." + req.file["mimetype"].split("/")[1];
-
+                if (!fs.exists("images/")) {
+                    fs.mkdir("images/");
+                }
                 fs.writeFile(filePath, req.file['buffer'], function(err) {
                     if (err) throw err;
                 });
