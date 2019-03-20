@@ -85,9 +85,9 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
         return Promise.reject(new Error("Bad Request"));
     }
     if (makePrimary === 'true') {
-        makePrimary = 1;
+        makePrimary = true;
     } else {
-        makePrimary = 0;
+        makePrimary = false;
     }
 
 
@@ -95,7 +95,7 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
         return Promise.reject(new Error("Bad Request"));
     }
 
-    let checkPrimaries = "SELECT COUNT(*) FROM VenuePhoto WHERE venue_id = ?";
+    let checkPrimaries = "SELECT COUNT(*) FROM VenuePhoto WHERE venue_id = ? AND is_primary";
     let clearPrimary = "UPDATE VenuePhoto SET is_primary = FALSE WHERE venue_id = ?";
     let venueQuery = "SELECT COUNT(*) FROM Venue WHERE venue_id = ?";
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
@@ -105,7 +105,7 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
     try {
         let resultPrimary = await db.getPool().query(checkPrimaries, id);
         if (resultPrimary[0]['COUNT(*)'] === 0) {
-            makePrimary = 1;
+            makePrimary = true;
         }
 
         let resultVenue = await db.getPool().query(venueQuery, id);
