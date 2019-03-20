@@ -322,12 +322,12 @@ exports.setPrimaryPhoto = async function (token, id) {
 
 exports.removePrimaryPhoto = async function (token, id) {
     let user = await getUser(token);
-    console.log("reee");
+
     if (await checkUserExists(id)) {
         return Promise.reject(new Error("Not Found"));
     }
 
-    console.log("noot");
+
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
@@ -348,6 +348,12 @@ exports.removePrimaryPhoto = async function (token, id) {
         }
 
         console.log("storage/photos/" + result[0]['profile_photo_filename']);
+
+        await fs.mkdir('storage/photos/', {recursive: true}).then(
+            {}, (err) => {
+                if(err.code !== 'EEXIST') return Promise.reject(err);
+            }
+        );
 
         await fs.unlink("storage/photos/" + result[0]['profile_photo_filename']);
         console.log("big penis");
