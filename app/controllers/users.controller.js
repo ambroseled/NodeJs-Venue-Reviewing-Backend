@@ -1,14 +1,6 @@
 const Users = require('../models/users.model');
 
 
-async function checkAuth(token, id) {
-    let queryString = "SELECT auth_token FROM User WHERE user_id = ?";
-    let userRow = await db.getPool().query(queryString, id);
-    console.log(token);
-    console.log(userRow[0]['auth_token']);
-    return token === userRow[0]['auth_token'];
-}
-
 /**
  * This method calls users.model.getOneUser to get the data for a given user profile,
  * the user data is then sent in teh response
@@ -188,7 +180,7 @@ exports.getPhoto = async function(req, res) {
             (err) => {
                 if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
-                    res.status(404).send('Photo: ' + req.params.photoFileName + ' Not Found');
+                    res.status(404).send('Not Found');
                 }
             }
         ).catch(
@@ -201,10 +193,10 @@ exports.getPhoto = async function(req, res) {
 };
 
 exports.setPhoto = async function(req, res) {
-    console.log(req.headers);
+    console.log(req.body);
     let contentType = req.headers['content-type'];
     console.log(contentType);
-    await Users.savePhoto(req.params.id, req.params.photo, contentType, req.body.description, req.headers['x-authorization'])
+    await Users.savePhoto(req.params.id, req.headers['x-authorization'])
         .then((photoRow) => {
                 res.statusMessage = 'OK';
                 res.send(photoRow);
@@ -247,7 +239,10 @@ exports.removePhoto = async function(req, res) {
                     res.status(403).send('Forbidden');
                 }  else if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
-                    res.status(403).send('Bad Request');
+                    res.status(400).send('Bad Request');
+                }   else if (err.message === 'Not Found') {
+                    res.statusMessage = 'Not Found';
+                    res.status(404).send('Not Found');
                 }
             }
         ).catch(

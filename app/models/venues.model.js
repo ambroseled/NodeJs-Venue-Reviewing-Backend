@@ -1,4 +1,6 @@
 const db = require("../../config/db");
+const fs = require('mz/fs');
+
 
 async function getUser(token) {
     if (!token) {
@@ -12,7 +14,8 @@ async function getUser(token) {
     return userRow[0]['user_id'];
 }
 
-exports.makePhotoPrimary = async function (id, token) {
+exports.makePhotoPrimary = async function (id, token, filename) {
+
     let user = await getUser(token);
 
     if (!user) {
@@ -20,13 +23,29 @@ exports.makePhotoPrimary = async function (id, token) {
     }
 
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
+    let checkPhoto = "SELECT COUNT(*) FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
+    let setPhoto = "UPDATE VenuePhoto SET is_primary = 1 WHERE venue_id = ? AND photo_filename = ?";
+    let clearPrimary = "UPDATE VenuePhoto SET is_primary = 0 WHERE venue_id = ?";
     
     try {
-        let resultAdmin = await db.getPool().query(getAdminQuery, user);
+        let resultAdmin = await db.getPool().query(getAdminQuery, id);
         if (user !== resultAdmin[0]['admin_id']) {
             return Promise.reject(new Error("Forbidden"));
         }
-        return Promise.reject(new Error("Bad Request"));
+
+
+        let photoResult = await db.getPool().query(checkPhoto, [id, filename]);
+        if (photoResult[0]["COUNT(*)"] === 0) {
+            return Promise.reject(new Error("Not Found"));
+        }
+
+
+        let resultClear = await db.getPool().query(clearPrimary, id);
+
+
+        let result = await db.getPool().query(setPhoto, [id, filename]);
+
+        return Promise.resolve(result);
     } catch (err) {
         
     }
@@ -34,7 +53,7 @@ exports.makePhotoPrimary = async function (id, token) {
     
 };
 
-exports.removePhoto = async function (id, token) {
+exports.removePhoto = async function (id, token, filename) {
     let user = await getUser(token);
 
     if (!user) {
@@ -42,14 +61,24 @@ exports.removePhoto = async function (id, token) {
     }
 
 
-    let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
+    let getAdminQuery = "SELECT * FROM Venue WHERE venue_id = ?";
+    let checkPhoto = "SELECT COUNT(*) FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
+    let removePhoto = "DELETE FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
 
     try {
-        let resultAdmin = await db.getPool().query(getAdminQuery, user);
+        let resultAdmin = await db.getPool().query(getAdminQuery, id);
         if (user !== resultAdmin[0]['admin_id']) {
             return Promise.reject(new Error("Forbidden"));
         }
-        return Promise.reject(new Error("Bad Request"));
+
+        let photoResult = await db.getPool().query(checkPhoto, [id, filename]);
+        if (photoResult[0]["COUNT(*)"] === 0) {
+            return Promise.reject(new Error("Not Found"));
+        }
+
+        let result = await db.getPool().query(removePhoto, [id, filename]);
+
+        return Promise.resolve(result);
     } catch (err) {
 
     }
@@ -61,21 +90,21 @@ exports.removePhoto = async function (id, token) {
  * @param filename the filename of the photo
  * @returns {Promise<*|undefined>}
  */
-exports.getOnePhoto = async function (id, filename, description, makePrimary) {
-    let queryString = "Select photo_description FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
+exports.getOnePhoto = async function (id, filename) {
+    let queryString = "Select COUNT(*) FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
     try {
         let photoRows = await db.getPool().query(queryString, [id, filename]);
 
-        if (photoRows.length === 0) {
+        if (photoRows[0]['COUNT(*)'] === 0) {
             return Promise.reject(new Error('Not Found'));
         }
-        return Promise.resolve(photoRows[0]);
+        return Promise.resolve(fs.readFile('storage/photos/' + filename));
     } catch(err) {
         return Promise.reject(err);
     }
 };
 
-exports.addNewPhoto = async function (id, token, filename, description, makePrimary) {
+exports.addNewPhoto = async function (id, token, filename, description, makePrimary, buffer) {
     let user = await getUser(token);
 
     if (!user) {
@@ -96,6 +125,7 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
     let venueQuery = "SELECT COUNT(*) FROM Venue WHERE venue_id = ?";
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
     let photoQuery = "INSERT INTO VenuePhoto (venue_id, photo_filename, photo_description, is_primary) VALUES (?, ?, ?, ?)";
+    let values = [id, filename, description, makePrimary];
 
     try {
         let resultPrimary = await db.getPool().query(checkPrimaries, id);
@@ -108,23 +138,31 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
             return Promise.reject(new Error("Not Found"));
         }
 
-
         let resultAdmin = await db.getPool().query(getAdminQuery, id);
         if (user !== resultAdmin[0]['admin_id']) {
             return Promise.reject(new Error("Forbidden"));
         }
 
-
         if (makePrimary) {
             let resultClear = await db.getPool().query(clearPrimary, id);
         }
+
+        let filePath = "storage/photos/" + filename;
+        await fs.mkdir('storage/photos/', {recursive: true}).then(
+            {}, (err) => {
+                if(err.code !== 'EEXIST') return Promise.reject(err);
+            }
+        );
+
+        await fs.writeFile(filePath, buffer);
 
         let values = [id, filename, description, makePrimary];
 
         let result = await db.getPool().query(photoQuery, values);
         return Promise.resolve(result);
     } catch (err) {
-
+        console.log(err);
+        return Promise.reject(err);
     }
 };
 

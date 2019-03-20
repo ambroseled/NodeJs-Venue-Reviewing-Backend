@@ -2,7 +2,7 @@ const db = require('../../config/db');
 const fs = require('mz/fs');
 const passwords = require('../../config/passwords');
 
-const photoDirectory = 'images/';
+const photoDirectory = './storage/images/';
 
 exports.resetDB = async function () {
     let promises = [];

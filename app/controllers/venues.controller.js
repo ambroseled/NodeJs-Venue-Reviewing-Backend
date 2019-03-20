@@ -1,5 +1,5 @@
 const Venues = require('../models/venues.model');
-const fs = require('mz/fs');
+
 
 
 exports.viewAll = async function (req, res) {
@@ -229,22 +229,12 @@ exports.getCategories = async function (req, res) {
 };
 
 exports.addPhoto = async function (req, res) {
-
     if (!req.file) {
         res.statusMessage = 'Bad Request';
         res.status(400).send('Bad Request');
     } else {
-        await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'], req.file["originalname"], req.body["description"], req.body["makePrimary"])
+        await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'], req.file["originalname"], req.body["description"], req.body["makePrimary"], req.file['buffer'])
             .then((result) => {
-
-                let filePath = "images/" + req.file["originalname"];// + "." + req.file["mimetype"].split("/")[1];
-                if (!fs.existsSync("images/")) {
-                    console.log("reeeeeee");
-                    fs.mkdir("images/");
-                }
-                fs.writeFile(filePath, req.file['buffer'], function(err) {
-                    if (err) throw err;
-                });
 
                 res.status(201).send('OK');
 
@@ -255,7 +245,7 @@ exports.addPhoto = async function (req, res) {
                 } else if (err.message === 'Forbidden') {
                     res.statusMessage = 'Forbidden';
                     res.status(403).send('Forbidden');
-                } else if (err.message === 'Bad Request') {
+                } else if (err.message === 'Bad Request' || err.code === 'ER_DUP_ENTRY') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
                 } else if (err.message === 'Not Found') {
@@ -277,14 +267,24 @@ exports.addPhoto = async function (req, res) {
 
 
 exports.getPhoto = async function (req, res) {
-    let contentType = req.get("content-type");
+    let filename = req.params.photoFileName;
 
-    await Venues.getOnePhoto(req.params.id, req.body.photo, req.body.description, req.body.makePrimary)
-        .then((photoRow) => {
-                res.statusMessage = 'OK';//TODO set content type
+    let contentType;
+    if (filename.includes('jpg') || filename.includes('jpeg')) {
+        contentType = "image/jpeg";
+    } else if (filename.includes('png')) {
+        contentType = "image/png";
+    } else {
+        res.statusMessage = 'Not Found';
+        res.status(404).send('Photo: ' + filename + ' Not Found');
+    }
+    await Venues.getOnePhoto(req.params.id, filename)
+        .then((image) => {
+
+                res.statusMessage = 'OK';
                 res.contentType(contentType);
                 res.status(200);
-                res.send(photoRow);
+                res.send(image);
             },
             (err) => {
                 if (err.message === 'Not Found') {
@@ -303,9 +303,13 @@ exports.getPhoto = async function (req, res) {
 
 
 exports.deletePhoto = async function (req, res) {
-    await Venues.removePhoto(req.params.id, req.headers['x-authorization'])
-        .then((result) => {
+    let filename = req.params.photoFileName;
 
+    await Venues.removePhoto(req.params.id, req.headers['x-authorization'], filename)
+        .then((result) => {
+            res.statusMessage = 'OK';
+            res.status(200);
+            res.send("Deleted");
         }, (err) => {
             if (err.message === 'Unauthorized') {
                 res.statusMessage = 'Unauthorized';
@@ -316,15 +320,28 @@ exports.deletePhoto = async function (req, res) {
             } else if (err.message === 'Bad Request') {
                 res.statusMessage = 'Bad Request';
                 res.status(400).send('Bad Request');
+            } else if (err.message === 'Not Found') {
+                res.statusMessage = 'Not Found';
+                res.status(404).send('Photo: ' + filename + ' Not Found');
             }
-        });
+        }).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
+            }
+        );
 };
 
 
 exports.setPrimaryPhoto = async function (req, res) {
-    await Venues.makePhotoPrimary(req.params.id, req.headers['x-authorization'])
-        .then((result) => {
+    let filename = req.params.photoFileName;
 
+    await Venues.makePhotoPrimary(req.params.id, req.headers['x-authorization'], filename)
+        .then((result) => {
+            res.statusMessage = 'OK';
+            res.status(200);
+            res.send("OK");
         }, (err) => {
             if (err.message === 'Unauthorized') {
                 res.statusMessage = 'Unauthorized';
@@ -332,11 +349,17 @@ exports.setPrimaryPhoto = async function (req, res) {
             } else if (err.message === 'Forbidden') {
                 res.statusMessage = 'Forbidden';
                 res.status(403).send('Forbidden');
-            } else if (err.message === 'Bad Request') {
-                res.statusMessage = 'Bad Request';
-                res.status(403).send('Bad Request');
+            } else if (err.message === 'Not Found') {
+                res.statusMessage = 'Not Found';
+                res.status(404).send('Not Found');
             }
-        });
+        }).catch(
+            (error) => {
+                console.error(error);
+                res.statusMessage = 'Internal Server Error';
+                res.status(500).send('Internal Server Error');
+            }
+        );
 };
 
 

@@ -12,11 +12,21 @@ async function getUser(token) {
     }
     let queryString = "SELECT user_id FROM User WHERE auth_token = ?";
     let userRow = await db.getPool().query(queryString, token);
+
     if (userRow.length < 1) {
+
         return null;
     }
     return userRow[0]['user_id'];
 }
+
+
+async function checkUserExists(id) {
+    let query = "SELECT COUNT(*) FROM User WHERE user_id = ?";
+    let result = await db.getPool().query(query, id);
+    return result[0]['COUNT(*)'] === 0;
+}
+
 
 
 exports.getOneUser = async function (id, token) {
@@ -59,8 +69,13 @@ exports.getAllReviews = async function (id) {
     }
 };
 
-exports.savePhoto = async function (id, filename, type, description, token) {
+exports.savePhoto = async function (id, token) {
     let user = await getUser(token);
+
+
+    if (await checkUserExists(id)) {
+        return Promise.reject(new Error("Not Found"));
+    }
 
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
@@ -68,18 +83,12 @@ exports.savePhoto = async function (id, filename, type, description, token) {
     if (user !== parseInt(id, 10)) {
         return Promise.reject(new Error("Forbidden"));
     }
-    if (!filename || !description) {
-        return Promise.reject(new Error("Bad Request"));
-    }
 
-    let queryString = "INSERT INTO VenuePhoto (venue_id, photo_filename, photo_description) VALUES (?, ?, ?)";
 
     try {
 
-        let result = await db.getPool().query(queryString, [id, filename, descrption]);
 
-
-        return Promise.resolve(result);
+        return Promise.resolve("ree");
     } catch(err) {
         return Promise.reject(err);
     }
@@ -87,20 +96,26 @@ exports.savePhoto = async function (id, filename, type, description, token) {
 
 
 exports.getOnePhoto = async function (id, filename) {
-    // TODO work out where profile photos are stored
-    /**
-    let queryString = "Select  FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
-    try {
-        let photoRows = await db.getPool().query(queryString, [id, filename]);
 
-        if (photoRows.length === 0) {
-            return Promise.reject(new Error('Not Found'));
+    if (await checkUserExists(id)) {
+        return Promise.reject(new Error("Not Found"));
+    }
+
+
+    let queryString = "SELECT profile_photo_filename FROM User WHERE user_id = ?";
+
+    try {
+
+        let result = await db.getPool().query(queryString, id);
+        if (!result[0]['profile_photo_filename']) {
+            return Promise.reject(new Error("Not Found"));
         }
-        return Promise.resolve(photoRows[0]);
+
+
+        return Promise.resolve("ree");
     } catch(err) {
         return Promise.reject(err);
-    }*/
-    Promise.reject("Noot");
+    }
 };
 
 
@@ -116,7 +131,7 @@ exports.addUser = async function (username, email, given_name, family_name, pass
     if (!emailValidator.validate(email)) {
         return Promise.reject(new Error("Bad Request"));
     }
-    //TODO auth token
+
     let queryString = "INSERT INTO User (username, email, given_name, family_name, password) VALUES (?, ?, ?, ?, ?)";
 
     try {
@@ -264,7 +279,11 @@ exports.login = async function (username, email, password) {
 
 exports.setPrimaryPhoto = async function (token, id) {
     let user = await getUser(token);
-    console.log(user);
+
+    if (await checkUserExists(id)) {
+        return Promise.reject(new Error("Not Found"));
+    }
+
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
@@ -272,9 +291,9 @@ exports.setPrimaryPhoto = async function (token, id) {
         return Promise.reject(new Error("Forbidden"));
     }
 
-    return Promise.reject(new Error("Bad Request"));
-    try {
 
+    try {
+        return Promise.resolve("noot");
     } catch(err) {
         return Promise.reject(err);
     }
@@ -284,6 +303,10 @@ exports.setPrimaryPhoto = async function (token, id) {
 exports.removePrimaryPhoto = async function (token, id) {
     let user = await getUser(token);
 
+    if (await checkUserExists(id)) {
+        return Promise.reject(new Error("Not Found"));
+    }
+
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
@@ -291,10 +314,17 @@ exports.removePrimaryPhoto = async function (token, id) {
         return Promise.reject(new Error("Forbidden"));
     }
 
-    return Promise.reject(new Error("Bad Request"));
+    let queryString = "SELECT profile_photo_filename FROM User WHERE user_id = ?";
+
+
     try {
 
+        let result = await db.getPool().query(queryString, id);
+        if (!result[0]['profile_photo_filename']) {
+            return Promise.reject(new Error("Not Found"));
+        }
 
+        return Promise.resolve("noot");
     } catch(err) {
         return Promise.reject(err);
     }

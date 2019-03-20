@@ -11,7 +11,7 @@ module.exports = function (app) {
     app.route(app.rootUrl + '/users/:id/reviews')
         .get(users.getReviews);
 
-    app.route(app.rootUrl + '/users/:id/photos')
+    app.route(app.rootUrl + '/users/:id/photo')
         .get(users.getPhoto)
         .put(users.setPhoto)
         .delete(users.removePhoto);
