@@ -317,7 +317,7 @@ exports.deletePhoto = async function (req, res) {
                 res.status(403).send('Forbidden');
             } else if (err.message === 'Bad Request') {
                 res.statusMessage = 'Bad Request';
-                res.status(403).send('Bad Request');
+                res.status(400).send('Bad Request');
             }
         });
 };

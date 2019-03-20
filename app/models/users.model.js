@@ -263,7 +263,6 @@ exports.login = async function (username, email, password) {
 
 
 exports.setPrimaryPhoto = async function (token, id) {
-    console.log("reeeee");
     let user = await getUser(token);
     console.log(user);
     if (!user) {
