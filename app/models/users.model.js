@@ -4,6 +4,8 @@ const passwords = require('../../config/passwords');
 const emailValidator = require("email-validator");
 const UIDGenerator = require('uid-generator');
 const uidgen = new UIDGenerator();
+const fileType = require('file-type');
+const fs = require('mz/fs');
 
 
 async function getUser(token) {
@@ -69,7 +71,7 @@ exports.getAllReviews = async function (id) {
     }
 };
 
-exports.savePhoto = async function (id, token) {
+exports.savePhoto = async function (id, token, buffer) {
     let user = await getUser(token);
 
 
@@ -85,17 +87,35 @@ exports.savePhoto = async function (id, token) {
     }
 
 
+    let filename = "user" + id + "_profile_photo." + fileType(buffer)['ext'];
+
+    let checkPhoto = "SELECT profile_photo_filename FROM User WHERE user_id = ?";
+
+    let updateQuery = "UPDATE User SET profile_photo_filename = ? WHERE user_id = ?";
+
     try {
+        let returnCode = 200;
+        let checkResult = await db.getPool().query(checkPhoto, id);
+        if (!checkResult[0]['profile_photo_filename']) {
+            returnCode = 201;
+        } else {
+            await fs.unlink("storage/photos/" + checkResult[0]['profile_photo_filename']);
+        }
 
+        await fs.writeFile("storage/photos/" + filename, buffer);
 
-        return Promise.resolve("ree");
+        let result = await db.getPool().query(updateQuery, [filename, id]);
+
+        return Promise.resolve(returnCode);
     } catch(err) {
         return Promise.reject(err);
     }
 };
 
 
-exports.getOnePhoto = async function (id, filename) {
+exports.getOnePhoto = async function (id) {
+
+
 
     if (await checkUserExists(id)) {
         return Promise.reject(new Error("Not Found"));
@@ -106,13 +126,13 @@ exports.getOnePhoto = async function (id, filename) {
 
     try {
 
-        let result = await db.getPool().query(queryString, id);
-        if (!result[0]['profile_photo_filename']) {
+        let resultCheck = await db.getPool().query(queryString, id);
+        let filename = resultCheck[0]['profile_photo_filename'];
+        if (!filename) {
             return Promise.reject(new Error("Not Found"));
         }
 
-
-        return Promise.resolve("ree");
+        return Promise.resolve(await fs.readFile('storage/photos/' + filename));
     } catch(err) {
         return Promise.reject(err);
     }
@@ -302,17 +322,20 @@ exports.setPrimaryPhoto = async function (token, id) {
 
 exports.removePrimaryPhoto = async function (token, id) {
     let user = await getUser(token);
-
+    console.log("reee");
     if (await checkUserExists(id)) {
         return Promise.reject(new Error("Not Found"));
     }
 
+    console.log("noot");
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
     if (user !== parseInt(id, 10)) {
         return Promise.reject(new Error("Forbidden"));
     }
+
+    console.log("skeet");
 
     let queryString = "SELECT profile_photo_filename FROM User WHERE user_id = ?";
 
@@ -324,7 +347,11 @@ exports.removePrimaryPhoto = async function (token, id) {
             return Promise.reject(new Error("Not Found"));
         }
 
-        return Promise.resolve("noot");
+        console.log("storage/photos/" + result[0]['profile_photo_filename']);
+
+        await fs.unlink("storage/photos/" + result[0]['profile_photo_filename']);
+        console.log("big penis");
+        return Promise.resolve();
     } catch(err) {
         return Promise.reject(err);
     }

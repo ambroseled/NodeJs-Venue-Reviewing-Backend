@@ -65,6 +65,8 @@ exports.removePhoto = async function (id, token, filename) {
     let checkPhoto = "SELECT COUNT(*) FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
     let removePhoto = "DELETE FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
 
+
+    //TODO set another one to primary if this photo is primary
     try {
         let resultAdmin = await db.getPool().query(getAdminQuery, id);
         if (user !== resultAdmin[0]['admin_id']) {

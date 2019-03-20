@@ -1,5 +1,5 @@
 const Users = require('../models/users.model');
-
+const fileType = require('file-type');
 
 /**
  * This method calls users.model.getOneUser to get the data for a given user profile,
@@ -172,10 +172,12 @@ exports.updateDetails = async function(req, res) {
  * @returns {Promise<void>}
  */
 exports.getPhoto = async function(req, res) {
-    await Users.getOnePhoto(req.params.id, req.params.photoFileName)
-        .then((photoRow) => {
+    await Users.getOnePhoto(req.params.id)
+        .then((photo) => {
+                console.log(fileType(photo));
                 res.statusMessage = 'OK';
-                res.send(photoRow);
+                res.contentType(fileType(photo)['ext']);
+                res.status(200).send(photo);
             },
             (err) => {
                 if (err.message === 'Not Found') {
@@ -194,14 +196,14 @@ exports.getPhoto = async function(req, res) {
 
 exports.setPhoto = async function(req, res) {
     console.log(req.body);
-    let contentType = req.headers['content-type'];
-    console.log(contentType);
-    await Users.savePhoto(req.params.id, req.headers['x-authorization'])
-        .then((photoRow) => {
-                res.statusMessage = 'OK';
-                res.send(photoRow);
+    console.log(typeof req.body);
+    let buffer = Buffer.from(req.body);
+    await Users.savePhoto(req.params.id, req.headers['x-authorization'], buffer)
+        .then((code) => {
+                res.sendStatus(code);
             },
             (err) => {
+            console.log(err);
                 if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
@@ -227,9 +229,9 @@ exports.setPhoto = async function(req, res) {
 
 exports.removePhoto = async function(req, res) {
     await Users.removePrimaryPhoto(req.headers['x-authorization'], req.params.id)
-        .then((result) => {
+        .then(() => {
                 res.statusMessage = 'OK';
-                res.status(200).send();
+                res.status(200).send('OK');
             }, (err) => {
                 if (err.message === 'Unauthorized') {
                     res.statusMessage = 'Unauthorized';
