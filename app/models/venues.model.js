@@ -100,7 +100,7 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
 
     try {
         let resultPrimary = await db.getPool().query(checkPrimaries, id);
-        console.log("Primary result: " + resultPrimary);
+        console.log("Primary result: " + resultPrimary.length + " result " +resultPrimary[0]);
         if (resultPrimary[0]['COUNT(*)'] === 0) {
             makePrimary = true; //TODO test this more
         }
