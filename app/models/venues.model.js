@@ -96,15 +96,12 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
     let venueQuery = "SELECT COUNT(*) FROM Venue WHERE venue_id = ?";
     let getAdminQuery = "SELECT admin_id FROM Venue WHERE venue_id = ?";
     let photoQuery = "INSERT INTO VenuePhoto (venue_id, photo_filename, photo_description, is_primary) VALUES (?, ?, ?, ?)";
-    let values = [id, filename, description, makePrimary];
 
     try {
         let resultPrimary = await db.getPool().query(checkPrimaries, id);
-        console.log("Primary result: " + resultPrimary.length + " result " +resultPrimary[0]);
         if (resultPrimary[0]['COUNT(*)'] === 0) {
             makePrimary = true; //TODO test this more
         }
-        console.log(makePrimary);
 
         let resultVenue = await db.getPool().query(venueQuery, id);
         if (resultVenue[0]['COUNT(*)'] === 0) {
@@ -121,6 +118,8 @@ exports.addNewPhoto = async function (id, token, filename, description, makePrim
         if (makePrimary) {
             let resultClear = await db.getPool().query(clearPrimary, id);
         }
+
+        let values = [id, filename, description, makePrimary];
 
         let result = await db.getPool().query(photoQuery, values);
         return Promise.resolve(result);

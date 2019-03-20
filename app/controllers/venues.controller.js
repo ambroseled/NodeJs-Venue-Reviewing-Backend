@@ -230,8 +230,6 @@ exports.getCategories = async function (req, res) {
 
 exports.addPhoto = async function (req, res) {
 
-
-
     if (!req.file) {
         res.statusMessage = 'Bad Request';
         res.status(400).send('Bad Request');
