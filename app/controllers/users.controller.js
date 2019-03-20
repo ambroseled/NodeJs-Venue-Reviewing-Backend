@@ -229,7 +229,7 @@ exports.setPhoto = async function(req, res) {
 
 exports.removePhoto = async function(req, res) {
     await Users.removePrimaryPhoto(req.headers['x-authorization'], req.params.id)
-        .then(() => {
+        .then((result) => {
                 res.statusMessage = 'OK';
                 res.status(200).send('OK');
             }, (err) => {

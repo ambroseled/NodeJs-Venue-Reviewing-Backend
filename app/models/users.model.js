@@ -102,6 +102,12 @@ exports.savePhoto = async function (id, token, buffer) {
             await fs.unlink("storage/photos/" + checkResult[0]['profile_photo_filename']);
         }
 
+        await fs.mkdir('storage/photos/', {recursive: true}).then(
+            {}, (err) => {
+                if(err.code !== 'EEXIST') return Promise.reject(err);
+            }
+        );
+
         await fs.writeFile("storage/photos/" + filename, buffer);
 
         let result = await db.getPool().query(updateQuery, [filename, id]);
@@ -114,7 +120,6 @@ exports.savePhoto = async function (id, token, buffer) {
 
 
 exports.getOnePhoto = async function (id) {
-
 
 
     if (await checkUserExists(id)) {
@@ -297,28 +302,6 @@ exports.login = async function (username, email, password) {
 };
 
 
-exports.setPrimaryPhoto = async function (token, id) {
-    let user = await getUser(token);
-
-    if (await checkUserExists(id)) {
-        return Promise.reject(new Error("Not Found"));
-    }
-
-    if (!user) {
-        return Promise.reject(new Error("Unauthorized"));
-    }
-    if (user !== parseInt(id, 10)) {
-        return Promise.reject(new Error("Forbidden"));
-    }
-
-
-    try {
-        return Promise.resolve("noot");
-    } catch(err) {
-        return Promise.reject(err);
-    }
-};
-
 
 exports.removePrimaryPhoto = async function (token, id) {
     let user = await getUser(token);
@@ -349,15 +332,10 @@ exports.removePrimaryPhoto = async function (token, id) {
 
         console.log("storage/photos/" + result[0]['profile_photo_filename']);
 
-        await fs.mkdir('storage/photos/', {recursive: true}).then(
-            {}, (err) => {
-                if(err.code !== 'EEXIST') return Promise.reject(err);
-            }
-        );
 
         await fs.unlink("storage/photos/" + result[0]['profile_photo_filename']);
         console.log("big penis");
-        return Promise.resolve();
+        return Promise.resolve("beep");
     } catch(err) {
         return Promise.reject(err);
     }
