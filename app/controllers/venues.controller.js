@@ -115,7 +115,7 @@ exports.getOne = async function (req, res) {
                        {
                            "photoFilename" : data[1][i]['photo_filename'],
                            "photoDescription" : data[1][i]['photo_description'],
-                           "isPrimary" : data[1][i]['is_primary']
+                           "isPrimary" : (data[1][i]['is_primary'] === 1)
                        }
                    )
                }
