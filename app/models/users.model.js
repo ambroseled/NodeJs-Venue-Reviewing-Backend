@@ -320,7 +320,7 @@ exports.removePrimaryPhoto = async function (token, id) {
     }
 
     let queryString = "SELECT profile_photo_filename FROM User WHERE user_id = ?";
-
+    let removeQuery = "UPDATE User SET profile_photo_filename = NULL WHERE user_id = ?";
     try {
 
         let result = await db.getPool().query(queryString, id);
@@ -332,9 +332,12 @@ exports.removePrimaryPhoto = async function (token, id) {
         console.log("storage/photos/" + result[0]['profile_photo_filename']);
 
         await fs.unlink("storage/photos/" + result[0]['profile_photo_filename']);
+
+        let removeResult = await db.getPool().query(removeQuery, id);
         console.log("------Remove Photo End Resolve------");
         return Promise.resolve();
     } catch(err) {
+        console.log(err);
         return Promise.reject(err);
     }
 };
