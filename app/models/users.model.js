@@ -304,38 +304,36 @@ exports.login = async function (username, email, password) {
 
 
 exports.removePrimaryPhoto = async function (token, id) {
+    console.log("------Remove Photo Start------");
     let user = await getUser(token);
-
     if (await checkUserExists(id)) {
+        console.log("------Remove Photo End Not Found------");
         return Promise.reject(new Error("Not Found"));
     }
-
-
     if (!user) {
+        console.log("------Remove Photo End Unauthorized------");
         return Promise.reject(new Error("Unauthorized"));
     }
     if (user !== parseInt(id, 10)) {
+        console.log("------Remove Photo End Forbidden------");
         return Promise.reject(new Error("Forbidden"));
     }
 
-    console.log("skeet");
-
     let queryString = "SELECT profile_photo_filename FROM User WHERE user_id = ?";
-
 
     try {
 
         let result = await db.getPool().query(queryString, id);
         if (!result[0]['profile_photo_filename']) {
+            console.log("------Remove Photo End Not Found------");
             return Promise.reject(new Error("Not Found"));
         }
 
         console.log("storage/photos/" + result[0]['profile_photo_filename']);
 
-
         await fs.unlink("storage/photos/" + result[0]['profile_photo_filename']);
-        console.log("big penis");
-        return Promise.resolve("beep");
+        console.log("------Remove Photo End Resolve------");
+        return Promise.resolve();
     } catch(err) {
         return Promise.reject(err);
     }
