@@ -174,7 +174,6 @@ exports.updateDetails = async function(req, res) {
 exports.getPhoto = async function(req, res) {
     await Users.getOnePhoto(req.params.id)
         .then((photo) => {
-                console.log(fileType(photo));
                 res.statusMessage = 'OK';
                 res.contentType(fileType(photo)['ext']);
                 res.status(200).send(photo);
@@ -195,15 +194,12 @@ exports.getPhoto = async function(req, res) {
 };
 
 exports.setPhoto = async function(req, res) {
-    console.log(req.body);
-    console.log(typeof req.body);
     let buffer = Buffer.from(req.body);
     await Users.savePhoto(req.params.id, req.headers['x-authorization'], buffer)
         .then((code) => {
                 res.sendStatus(code);
             },
             (err) => {
-            console.log(err);
                 if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
