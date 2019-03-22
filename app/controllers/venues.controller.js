@@ -374,7 +374,7 @@ exports.getReview = async function (req, res) {
                             {
                                 "reviewAuthor" :
                                     {
-                                        "userID" : reviewRows[i]['review_author_id'],
+                                        "userId" : reviewRows[i]['review_author_id'],
                                         "username" : reviewRows[i]['username']
                                     },
                                 "reviewBody" : reviewRows[i]['review_body'],

@@ -55,18 +55,38 @@ exports.getOneUser = async function (id, token) {
 };
 
 exports.getAllReviews = async function (id) {
-    let queryString = "Select review_author_id, username, review_body, star_rating, cost_rating, time_posted, venue_id, " +
+    let queryString = "Select review_author_id, username, review_body, star_rating, cost_rating, time_posted, Venue.venue_id, " +
         "venue_name, category_name, city, short_description FROM Review JOIN User ON review_author_id = " +
-        "user_id JOIN Venue ON venue_id = reviewed_venue_id WHERE review_author_id = ?";
+        "user_id JOIN Venue ON venue_id = reviewed_venue_id JOIN VenueCategory VC ON VC.category_id = Venue.category_id" +
+        " WHERE review_author_id = ?";
+
+    let photoQuery = "SELECT Venue.venue_id, photo_filename FROM Review JOIN User ON review_author_id = user_id JOIN Venue ON venue_id " +
+        "= reviewed_venue_id JOIN VenuePhoto VP on Venue.venue_id = VP.venue_id WHERE user_id = ? AND is_primary";
     try {
 
         let reviewRows = await db.getPool().query(queryString, id);
-
         if (reviewRows.length === 0) {
             return Promise.reject(new Error('Not Found'));
         }
-        return Promise.resolve(reviewRows);
+
+        let photoRows = await db.getPool().query(photoQuery, id);
+
+        let photos = [];
+
+        for (let i = 0; i < reviewRows.length; i++) {
+            if (photoRows.length <= i) {
+                photos.push({"photo_filename" : ""});
+            } else if (reviewRows[i]['venue_id'] === photoRows[i]['venue_id']) {
+                photos.push({"photo_filename" : photoRows[i]["photo_filename"]});
+            } else {
+                photos.push({"photo_filename" : ""});
+            }
+        }
+
+
+        return Promise.resolve([reviewRows, photos]);
     } catch(err) {
+        console.log(err);
         return Promise.reject(err);
     }
 };
@@ -304,6 +324,9 @@ exports.login = async function (username, email, password) {
 
 
 exports.removePrimaryPhoto = async function (token, id) {
+
+    //TODO Set another photo to primary
+    //TODO Test this, all cases
     let user = await getUser(token);
 
     if (await checkUserExists(id)) {
