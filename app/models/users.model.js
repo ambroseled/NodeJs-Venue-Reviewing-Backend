@@ -197,45 +197,54 @@ exports.getOnePhoto = async function (id) {
 };
 
 /**
- *
- * @param username
- * @param email
- * @param given_name
- * @param family_name
- * @param password
- * @returns {Promise<*|undefined>}
+ * Adding a new user to the system
+ * @param username the new username
+ * @param email the new email
+ * @param given_name the new given name
+ * @param family_name the new family name
+ * @param password the new password
+ * @returns the result of the insert query
  */
 exports.addUser = async function (username, email, given_name, family_name, password) {
-
+    // Checking if any required fields are missing
     if (!password || !username || !email || !given_name || !family_name) {
         return Promise.reject(new Error("Bad Request"));
     }
+    // Checking the password is long enough
     if (password.length === 0) {
         return Promise.reject(new Error("Bad Request"));
     }
-
+    // Checking the email is valid
     if (!emailValidator.validate(email)) {
         return Promise.reject(new Error("Bad Request"));
     }
-
+    // Forming query to insert the new user into the database
     let queryString = "INSERT INTO User (username, email, given_name, family_name, password) VALUES (?, ?, ?, ?, ?)";
 
     try {
-
+        // Inserting the user into the database
         let result = await db.getPool().query(queryString, [username, email, given_name, family_name, await passwords.hash(password)]);
-
-
+        // Returning the result
         return Promise.resolve(result);
     } catch(err) {
+        // Catching any errors
         return Promise.reject(err);
     }
 };
 
-
-
+/**
+ * Updating a users details in teh database
+ * @param givenName the new given name
+ * @param familyName the new family name
+ * @param password the new password
+ * @param token the auth token
+ * @param id the user if
+ * @returns the result of the update query
+ */
 exports.patchUser = async function (givenName, familyName, password, token, id) {
+    // Checking the users auth token
     let user = await getUser(token);
-
+    // Handling teh results of the auth check
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
@@ -247,10 +256,10 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
     let familyValid = true;
     let passValid = true;
 
+    // Validating the new details of the user
     if (!givenName) {
         givenValid = false;
     }
-
     if (givenName !== undefined && givenName.length < 1) {
         return Promise.reject(new Error("Bad Request"));
     }
@@ -266,7 +275,6 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
     if (password !== undefined && (password.length < 1 || (typeof password) !== "string")) {
         return Promise.reject(new Error("Bad Request"));
     }
-
     if (!givenValid && !familyValid && !passValid) {
         return Promise.reject(new Error("Bad Request"));
     }
@@ -274,7 +282,7 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
 
     let setArgs = [];
     let queryValues = [];
-
+    // Forming the query to update the user
     if (givenValid) {
         setArgs.push("given_name = ?");
         queryValues.push(givenName);
@@ -288,45 +296,54 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
         queryValues.push(await passwords.hash(password));
     }
 
-
     let updateQuery = "UPDATE User SET " + setArgs.join(", ") + " WHERE user_id = ?";
     queryValues.push(id);
 
     try {
-
+        // Performing the update of teh user
         let result = await db.getPool().query(updateQuery, queryValues);
-        console.log(result);
         return Promise.resolve(result);
-
     } catch(err) {
+        // Catching errors
         return Promise.reject(err);
     }
 };
 
-
+/**
+ * Logging the past user out of the system
+ * @param token the users auth token
+ * @returns the result of the logout
+ */
 exports.logout = async function (token) {
+    // Checking the auth token
     let user = await getUser(token);
-
+    // Handling result of auth check
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
-
+    // Forming query for logout
     let updateQuery = "UPDATE User SET auth_token = null WHERE user_id = ?";
     try {
-
+        // Performing logout query
         let result = await db.getPool().query(updateQuery, user);
-        console.log(result);
         return Promise.resolve(result);
-
     } catch(err) {
+        // Catching errors
         return Promise.reject(err);
     }
 };
 
-
+/**
+ * Logging a passed user into the system
+ * @param username the users username
+ * @param email the user email
+ * @param password the user password
+ * @returns the auth token and user id of the logged in user
+ */
 exports.login = async function (username, email, password) {
     let queryString;
     let values = [];
+    // Checking values given and forming query dependent on the values
     if (!username) {
         queryString = "SELECT user_id, password FROM User WHERE email = ?";
         values = [email];
@@ -338,62 +355,66 @@ exports.login = async function (username, email, password) {
         values = [username, email];
     }
 
-
     try {
+        // Performing login query
         let result = await db.getPool().query(queryString, values);
-
-
+        // Checking result of the login
         if (result.length === 0) {
             return Promise.reject(new Error('Bad Request'));
         }
-
         if (await passwords.compare(result[0]['password'], password)) {
+            // If password is correct, generating an auth token and storing it in teh user table
             let token = await uidgen.generate();
-
             await db.getPool().query("UPDATE User SET auth_token = ? WHERE user_id = ?", [token, result[0]['user_id']]);
-
             return Promise.resolve([result, token]);
         } else {
+            // Password is incorrect
             return Promise.reject(new Error('Bad Request'));
         }
-
     } catch(err) {
+        // Catching errors
         return Promise.reject(err);
     }
 };
 
-
-
+/**
+ * Removing a users primary photo
+ * @param token
+ * @param id
+ * @returns {Promise<*>}
+ */
 exports.removePrimaryPhoto = async function (token, id) {
-
-    //TODO Set another photo to primary
     //TODO Test this, all cases
-    let user = await getUser(token);
 
+    // Checking users auth token
+    let user = await getUser(token);
+    // Checking user exists
     if (await checkUserExists(id)) {
         return Promise.reject(new Error("Not Found"));
     }
+    // Handling result of auth check
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
     if (user !== parseInt(id, 10)) {
         return Promise.reject(new Error("Forbidden"));
     }
-
+    // Forming queries required
     let queryString = "SELECT profile_photo_filename FROM User WHERE user_id = ?";
     let removeQuery = "UPDATE User SET profile_photo_filename = NULL WHERE user_id = ?";
     try {
-
+        // Getting the users photo filename
         let result = await db.getPool().query(queryString, id);
         if (!result[0]['profile_photo_filename']) {
             return Promise.reject(new Error("Not Found"));
         }
-
+        // Removing the photo from local storage
         await fs.unlink("storage/photos/" + result[0]['profile_photo_filename']);
-
+        // Removing the photo from the database
         let removeResult = await db.getPool().query(removeQuery, id);
         return Promise.resolve();
     } catch(err) {
+        // Catching errors
         console.log(err);
         return Promise.reject(err);
     }
