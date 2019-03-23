@@ -2,6 +2,8 @@ const db = require("../../config/db");
 const fs = require('mz/fs');
 
 
+//TODO Test categories fail cases
+
 async function getUser(token) {
     if (!token) {
         return null;

@@ -66,7 +66,9 @@ exports.getUser = async function (req, res) {
 exports.getReviews = async function (req, res) {
     // Calling model method to get review data
     await Users.getAllReviews(req.params.id)
-        .then((reviewRows) => {
+        .then((result) => {
+            let reviewRows = result[0];
+            let photos = result[1];
             let  reviews = [];
             if (reviewRows) {
                 // Looping over returned result and forming response
@@ -75,7 +77,7 @@ exports.getReviews = async function (req, res) {
                         {
                             "reviewAuthor":
                                 {
-                                    "userID": reviewRows[i]['review_author_id'],
+                                    "userId": reviewRows[i]['review_author_id'],
                                     "username": reviewRows[i]['username']
                                 },
                             "reviewBody": reviewRows[i]['review_body'],
@@ -84,12 +86,12 @@ exports.getReviews = async function (req, res) {
                             "timePosted": reviewRows[i]['time_posted'],
                             "venue" :
                                 {
-                                    "venueId" : reviewRows['venue_id'],
-                                    "venueName" : reviewRows['venue_name'],
-                                    "categoryName" : reviewRows['category_name'],
-                                    "city" : reviewRows['city'],
-                                    "shortDescription" : reviewRows['short_description'],
-                                    "primaryPhoto" : reviewRows['photo_filename']
+                                    "venueId" : reviewRows[i]['venue_id'],
+                                    "venueName" : reviewRows[i]['venue_name'],
+                                    "categoryName" : reviewRows[i]['category_name'],
+                                    "city" : reviewRows[i]['city'],
+                                    "shortDescription" : reviewRows[i]['short_description'],
+                                    "primaryPhoto" : photos[i]['photo_filename']
                                 }
                         }
                     )
@@ -103,7 +105,7 @@ exports.getReviews = async function (req, res) {
             (err) => {
                 if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
-                    res.status(404).send('Review: ' + req.params.id + ' Not Found');
+                    res.status(404).send('Review Not Found');
                 } else {
                     console.error(error);
                     res.statusMessage = 'Internal Server Error';
