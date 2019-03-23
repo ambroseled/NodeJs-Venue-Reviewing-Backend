@@ -9,10 +9,13 @@ const fileType = require('file-type');
  * @returns {Promise<void>}
  */
 exports.getUser = async function (req, res) {
+    // Calling model method to get user data
     await Users.getOneUser(req.params.id, req.headers['x-authorization'])
         .then((result) => {
-            let toDisplay;
+                let toDisplay;
+                // Forming the json response
                 if (result[1]) {
+                    // Json response for an authenticated user
                     toDisplay =
                         {
                             "username" : result[0]['username'],
@@ -21,6 +24,7 @@ exports.getUser = async function (req, res) {
                             "familyName" : result[0]['family_name']
                         };
                 } else {
+                    // Json response for a non authenticated user
                     toDisplay =
                         {
                             "username" : result[0]['username'],
@@ -28,15 +32,19 @@ exports.getUser = async function (req, res) {
                             "familyName" : result[0]['family_name']
                         };
                 }
-
-
+                // Sending the response
                 res.statusMessage = 'OK';
                 res.json(toDisplay);
             },
             (err) => {
+            // Catching and responding to errors
                 if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('User: ' + req.params.id + ' Not Found');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -56,11 +64,12 @@ exports.getUser = async function (req, res) {
  * @returns {Promise<void>}
  */
 exports.getReviews = async function (req, res) {
+    // Calling model method to get review data
     await Users.getAllReviews(req.params.id)
         .then((reviewRows) => {
-
             let  reviews = [];
             if (reviewRows) {
+                // Looping over returned result and forming response
                 for (let i = 0; i < reviewRows.length; i++) {
                     reviews.push(
                         {
@@ -86,13 +95,19 @@ exports.getReviews = async function (req, res) {
                     )
                 }
             }
+            // Sending the response
             res.statusMessage = 'OK';
             res.send(reviews);
             },
+                // Catching and responding to errors
             (err) => {
                 if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Review: ' + req.params.id + ' Not Found');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -111,19 +126,26 @@ exports.getReviews = async function (req, res) {
  * @returns {Promise<void>}
  */
 exports.register = async function(req, res) {
+    // Calling model method to store user data in database
     await Users.addUser(req.body.username, req.body.email, req.body.givenName, req.body.familyName, req.body.password)
         .then((result) => {
+            // Forming response
                 let toDisplay = {
                     "userId": result['insertId']
                 };
-
+                // Sending response
                 res.statusMessage = 'Created';
                 res.status(201).json(toDisplay);
             },
+            // Handling errors
             (err) => {
                 if (err.message === 'Bad Request' || err.code === 'ER_DUP_ENTRY') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -135,13 +157,22 @@ exports.register = async function(req, res) {
         );
 };
 
+/**
+ * Updating a users details in the database, through the users.model.patchUser
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.updateDetails = async function(req, res) {
+    // Calling model method to perform update on user in database
     await Users.patchUser(req.body.givenName, req.body.familyName, req.body.password, req.headers['x-authorization'], req.params.id)
         .then((result) => {
+            // Sending result
                 res.statusMessage = 'OK';
                 res.status(200).send('User Updated');
             },
             (err) => {
+                // Handling errors
                 if (err.message === 'Bad Request' || err.code === 'ER_DUP_ENTRY') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
@@ -154,6 +185,10 @@ exports.updateDetails = async function(req, res) {
                 } else if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Not Found');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -172,16 +207,23 @@ exports.updateDetails = async function(req, res) {
  * @returns {Promise<void>}
  */
 exports.getPhoto = async function(req, res) {
+    // Calling model to get a user photo
     await Users.getOnePhoto(req.params.id)
         .then((photo) => {
+                // Sending response
                 res.statusMessage = 'OK';
                 res.contentType(fileType(photo)['ext']);
                 res.status(200).send(photo);
             },
             (err) => {
+                // Handling errors
                 if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Not Found');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -193,13 +235,23 @@ exports.getPhoto = async function(req, res) {
         );
 };
 
+/**
+ * Sets a passed photo to the users primary photo
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.setPhoto = async function(req, res) {
+    // Getting the image buffer out of the request
     let buffer = Buffer.from(req.body);
+    // Calling model method to store the image and set it to the users primary photo
     await Users.savePhoto(req.params.id, req.headers['x-authorization'], buffer)
         .then((code) => {
+                // Sending response
                 res.sendStatus(code);
             },
             (err) => {
+                // Handling errors
                 if (err.message === 'Bad Request') {
                     res.statusMessage = 'Bad Request';
                     res.status(400).send('Bad Request');
@@ -212,6 +264,10 @@ exports.setPhoto = async function(req, res) {
                 } else if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Not Found');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -223,12 +279,21 @@ exports.setPhoto = async function(req, res) {
         );
 };
 
+/**
+ * Removing a users primary photo from local storage and the database
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.removePhoto = async function(req, res) {
+    // Calling model method to remove the photo
     await Users.removePrimaryPhoto(req.headers['x-authorization'], req.params.id)
         .then(() => {
+            // Sending response
                 res.statusMessage = 'OK';
                 res.status(200).send('OK');
             }, (err) => {
+                // Handling errors
                 if (err.message === 'Unauthorized') {
                     res.statusMessage = 'Unauthorized';
                     res.status(401).send('Unauthorized');
@@ -241,6 +306,10 @@ exports.removePhoto = async function(req, res) {
                 }   else if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Not Found');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -251,15 +320,28 @@ exports.removePhoto = async function(req, res) {
         );
 };
 
+/**
+ * Logging the user out of the system
+ * @param req the request
+ * @param res the response
+ * @returns {Promise<void>}
+ */
 exports.logout = async function(req, res) {
+    // Calling model method to log the user out
     await Users.logout(req.headers['x-authorization'])
         .then((result) => {
+                // Sending response
                 res.statusMessage = 'OK';
                 res.status(200).send();
             }, (err) => {
+                // Handling errors
                 if (err.message === 'Unauthorized') {
                     res.statusMessage = 'Unauthorized';
                     res.status(401).send('Unauthorized');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
                 }
             }
         ).catch(
@@ -278,15 +360,27 @@ exports.logout = async function(req, res) {
  * @returns {Promise<void>}
  */
 exports.login = async function(req, res) {
+    // Calling model method to log the user in
     await Users.login(req.body.username, req.body.email, req.body.password)
         .then((result) => {
+                // Forming json response
                 let toDisplay = {
                     "userId": result[0][0]['user_id'],
                     "token": result[1]
                 };
-
+                // Sending the response
                 res.statusMessage = 'OK';
                 res.json(toDisplay);
+            }, (err) => {
+                // Handling errors
+                if (err.message === 'Bad Request') {
+                    res.statusMessage = 'Bad Request';
+                    res.status(400).send('Bad Request');
+                } else {
+                    console.error(error);
+                    res.statusMessage = 'Internal Server Error';
+                    res.status(500).send('Internal Server Error');
+                }
             }
         ).catch(
             (error) => {
