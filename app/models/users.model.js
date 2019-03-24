@@ -75,7 +75,13 @@ exports.getOneUser = async function (id, token) {
  * @param id the id of teh user
  * @returns the review data
  */
-exports.getAllReviews = async function (id) {
+exports.getAllReviews = async function (id, token) {
+    // Checking the users auth
+    let user = await getUser(token);
+
+    if (!user) {
+        return Promise.reject(new Error("Unauthorized"));
+    }
     // Forming the query string
     let queryString = "Select review_author_id, username, review_body, star_rating, cost_rating, time_posted, Venue.venue_id, " +
         "venue_name, category_name, city, short_description FROM Review JOIN User ON review_author_id = " +

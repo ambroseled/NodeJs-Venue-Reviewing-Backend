@@ -315,7 +315,7 @@ exports.addPhoto = async function (req, res) {
         await Venues.addNewPhoto(req.params.id, req.headers['x-authorization'], req.file["originalname"], req.body["description"], req.body["makePrimary"], req.file['buffer'])
             .then((result) => {
                 // Sending response
-                res.status(201).send('OK');
+                res.status(201).send('Created');
             }, (err) => {
                 // Handling errors
                 if (err.message === 'Unauthorized') {

@@ -91,7 +91,9 @@ exports.removePhoto = async function (id, token, filename) {
         if (photoResult[0]["COUNT(*)"] === 0) {
             return Promise.reject(new Error("Not Found"));
         }
-        // Removing the photo from teh database
+        // Removing the photo from local storage
+        await fs.unlink("storage/photos/" + filename);
+        // Removing the photo from the database
         let result = await db.getPool().query(removePhoto, [id, filename]);
         return Promise.resolve(result);
     } catch (err) {
@@ -317,7 +319,7 @@ exports.updateVenue = async function (venueBody, id, token) {
             return Promise.reject(new Error("Bad Request"));
         }
     } else {
-        setArgs.push("venueName = ?");
+        setArgs.push("venue_name = ?");
         values.push(venueName);
     }
     // Returning bad request if all fields are invalid
@@ -331,6 +333,11 @@ exports.updateVenue = async function (venueBody, id, token) {
     let queryString = "Update Venue Set " + setArgs.join(", ") + " WHERE venue_id = ?";
     values.push(id);
     try {
+        // Checking the venue exists
+        let resultId = await db.getPool().query(idCheck, id);
+        if (resultId[0]['COUNT(*)'] === 0) {
+            return Promise.reject(new Error("Not Found"));
+        }
         // Checking the user is the admin of the venue
         let resultAdmin = await db.getPool().query(getAdminQuery, id);
         if (user !== resultAdmin[0]['admin_id']) {
@@ -342,11 +349,6 @@ exports.updateVenue = async function (venueBody, id, token) {
             if (categoryResult[0]['COUNT(*)'] === 0) {
                 return Promise.reject(new Error("Bad Request"));
             }
-        }
-        // Checking the venue exists
-        let resultId = await db.getPool().query(idCheck, id);
-        if (resultId[0]['COUNT(*)'] === 0) {
-            return Promise.reject(new Error("Not Found"));
         }
         // Performing the update
         let result = await db.getPool().query(queryString, values);

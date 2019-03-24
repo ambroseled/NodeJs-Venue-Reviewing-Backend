@@ -65,7 +65,7 @@ exports.getUser = async function (req, res) {
  */
 exports.getReviews = async function (req, res) {
     // Calling model method to get review data
-    await Users.getAllReviews(req.params.id)
+    await Users.getAllReviews(req.params.id, req.headers['x-authorization'])
         .then((result) => {
             let reviewRows = result[0];
             let photos = result[1];
@@ -106,6 +106,9 @@ exports.getReviews = async function (req, res) {
                 if (err.message === 'Not Found') {
                     res.statusMessage = 'Not Found';
                     res.status(404).send('Review Not Found');
+                }  else if (err.message === 'Unauthorized') {
+                    res.statusMessage = 'Unauthorized';
+                    res.status(401).send('Unauthorized');
                 } else {
                     console.error(error);
                     res.statusMessage = 'Internal Server Error';
