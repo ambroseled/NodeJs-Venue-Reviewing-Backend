@@ -279,7 +279,6 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
         return Promise.reject(new Error("Bad Request"));
     }
 
-
     let setArgs = [];
     let queryValues = [];
     // Forming the query to update the user
