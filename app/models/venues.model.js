@@ -90,7 +90,7 @@ exports.removePhoto = async function (id, token, filename) {
         }
         // checking the photo exists
         let photoResult = await db.getPool().query(checkPhoto, [id, filename]);
-        if (photoResult[0]["is_primary"] === null) {
+        if (photoResult.length < 1) {
             return Promise.reject(new Error("Not Found"));
         }
         // Removing the photo from local storage
