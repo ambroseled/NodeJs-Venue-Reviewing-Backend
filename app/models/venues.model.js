@@ -77,9 +77,11 @@ exports.removePhoto = async function (id, token, filename) {
     }
     // Forming the queries used
     let getAdminQuery = "SELECT * FROM Venue WHERE venue_id = ?";
-    let checkPhoto = "SELECT COUNT(*) FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
+    let checkPhoto = "SELECT is_primary FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
     let removePhoto = "DELETE FROM VenuePhoto WHERE venue_id = ? AND photo_filename = ?";
-    //TODO set another one to primary if this photo is primary
+    let getPhotos = "SELECT photo_filename FROM VenuePhoto WHERE venue_id = ?";
+    let setPrimary = "UPDATE VenuePhoto SET is_primary = 1 WHERE photo_filename = ? AND venue_id = ?";
+
     try {
         // Checking the user is the admin of the venue
         let resultAdmin = await db.getPool().query(getAdminQuery, id);
@@ -88,15 +90,24 @@ exports.removePhoto = async function (id, token, filename) {
         }
         // checking the photo exists
         let photoResult = await db.getPool().query(checkPhoto, [id, filename]);
-        if (photoResult[0]["COUNT(*)"] === 0) {
+        if (photoResult.length < 1) {
             return Promise.reject(new Error("Not Found"));
         }
         // Removing the photo from local storage
         await fs.unlink("storage/photos/" + filename);
         // Removing the photo from the database
         let result = await db.getPool().query(removePhoto, [id, filename]);
+        if (photoResult[0]['is_primary']) {
+
+            let photos = await db.getPool().query(getPhotos, id);
+            console.log(photos);
+            if (photos.length >= 1) {
+                let updateResult = await db.getPool().query(setPrimary, [photos[0]['photo_filename'], id]);
+            }
+        }
         return Promise.resolve(result);
     } catch (err) {
+        console.log(err);
         // Catching errors
         return Promise.reject(err);
     }

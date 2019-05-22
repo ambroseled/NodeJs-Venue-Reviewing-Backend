@@ -254,9 +254,6 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
     if (!user) {
         return Promise.reject(new Error("Unauthorized"));
     }
-    if (user !== parseInt(id, 10)) {
-        return Promise.reject(new Error("Forbidden"));
-    }
 
     let givenValid = true;
     let familyValid = true;
@@ -302,10 +299,18 @@ exports.patchUser = async function (givenName, familyName, password, token, id) 
     }
 
     let updateQuery = "UPDATE User SET " + setArgs.join(", ") + " WHERE user_id = ?";
+    let checkUser = "SELECT COUNT(*) FROM User WHERE user_id = ?";
     queryValues.push(id);
 
     try {
-        // Performing the update of teh user
+        let resultUser = await db.getPool().query(checkUser, id);
+        if (resultUser[0]['COUNT(*)'] === 0) {
+            return Promise.reject(new Error("Not Found"));
+        }
+        if (user !== parseInt(id, 10)) {
+            return Promise.reject(new Error("Forbidden"));
+        }
+        // Performing the update of the user
         let result = await db.getPool().query(updateQuery, queryValues);
         return Promise.resolve(result);
     } catch(err) {
